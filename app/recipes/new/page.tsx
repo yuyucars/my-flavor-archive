@@ -89,7 +89,7 @@ export default function NewRecipePage() {
   return (
     <>
       <Navbar />
-      <main className="max-w-2xl mx-auto px-4 py-8">
+      <main className="max-w-2xl mx-auto px-4 py-8 pb-8 md:pb-8">
         <h1 className="text-2xl font-light text-stone-800 mb-8">レシピを追加</h1>
 
         {/* URL自動抽出セクション */}

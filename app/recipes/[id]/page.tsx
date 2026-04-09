@@ -37,7 +37,7 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
   return (
     <>
       <Navbar />
-      <main className="max-w-2xl mx-auto px-4 py-8">
+      <main className="max-w-2xl mx-auto px-4 py-8 pb-8 md:pb-8">
         <Link href="/" className="text-stone-400 text-sm hover:text-stone-600 transition-colors mb-6 inline-block">
           ← レシピ一覧に戻る
         </Link>

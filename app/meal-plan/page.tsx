@@ -27,7 +27,7 @@ export default function MealPlanPage() {
   return (
     <>
       <Navbar />
-      <main className="max-w-2xl mx-auto px-4 py-8">
+      <main className="max-w-2xl mx-auto px-4 py-8 pb-8 md:pb-8">
         <div className="mb-8">
           <h1 className="text-2xl font-light text-stone-800">AI献立提案</h1>
           <p className="text-stone-400 text-sm mt-1">

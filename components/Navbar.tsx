@@ -3,11 +3,13 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useState } from 'react'
 
 export default function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -15,39 +17,104 @@ export default function Navbar() {
   }
 
   const navItems = [
-    { href: '/', label: 'レシピ一覧' },
-    { href: '/recipes/new', label: '+ レシピを追加' },
-    { href: '/meal-plan', label: 'AI献立提案' },
+    { href: '/', label: 'レシピ一覧', icon: '📋' },
+    { href: '/recipes/new', label: '追加', icon: '➕' },
+    { href: '/meal-plan', label: 'AI献立', icon: '🤖' },
   ]
 
   return (
-    <header className="border-b border-stone-100 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-      <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href="/" className="text-stone-800 font-medium tracking-wide text-lg">
-          My Flavor Archive
-        </Link>
-        <nav className="flex items-center gap-1">
+    <>
+      {/* ===== PC用ヘッダー ===== */}
+      <header className="border-b border-stone-100 bg-white/80 backdrop-blur-sm sticky top-0 z-10 hidden md:block">
+        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+          <Link href="/" className="text-stone-800 font-medium tracking-wide text-lg">
+            My Flavor Archive
+          </Link>
+          <nav className="flex items-center gap-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                  pathname === item.href
+                    ? 'bg-stone-100 text-stone-800 font-medium'
+                    : 'text-stone-500 hover:text-stone-700 hover:bg-stone-50'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+            <button
+              onClick={() => setShowLogoutConfirm(true)}
+              className="ml-2 px-3 py-1.5 text-sm text-stone-400 hover:text-stone-600 transition-colors"
+            >
+              ログアウト
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      {/* ===== スマホ用ヘッダー（上部タイトルのみ） ===== */}
+      <header className="border-b border-stone-100 bg-white/80 backdrop-blur-sm sticky top-0 z-10 md:hidden">
+        <div className="px-4 h-12 flex items-center justify-between">
+          <Link href="/" className="text-stone-800 font-medium tracking-wide">
+            My Flavor Archive
+          </Link>
+          <button
+            onClick={() => setShowLogoutConfirm(true)}
+            className="text-sm text-stone-400 hover:text-stone-600 transition-colors px-2 py-1"
+          >
+            ログアウト
+          </button>
+        </div>
+      </header>
+
+      {/* ===== スマホ用ボトムナビ ===== */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-100 z-10 md:hidden">
+        <div className="flex items-center justify-around h-16 px-2">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+              className={`flex flex-col items-center gap-1 flex-1 py-2 rounded-xl transition-colors ${
                 pathname === item.href
-                  ? 'bg-stone-100 text-stone-800 font-medium'
-                  : 'text-stone-500 hover:text-stone-700 hover:bg-stone-50'
+                  ? 'text-stone-800'
+                  : 'text-stone-400'
               }`}
             >
-              {item.label}
+              <span className="text-xl">{item.icon}</span>
+              <span className="text-xs font-medium">{item.label}</span>
             </Link>
           ))}
-          <button
-            onClick={handleLogout}
-            className="ml-2 px-3 py-1.5 text-sm text-stone-400 hover:text-stone-600 transition-colors"
-          >
-            ログアウト
-          </button>
-        </nav>
-      </div>
-    </header>
+        </div>
+      </nav>
+
+      {/* スマホ用ボトムナビの高さ分の余白 */}
+      <div className="h-16 md:hidden" />
+
+      {/* ===== ログアウト確認モーダル ===== */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+            <p className="text-lg font-medium text-stone-800 mb-2">ログアウトしますか？</p>
+            <p className="text-sm text-stone-400 mb-6">ログアウトするとログイン画面に戻ります。</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 py-2.5 border border-stone-200 rounded-full text-stone-600 text-sm hover:bg-stone-50 transition-colors"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex-1 py-2.5 bg-stone-800 text-white rounded-full text-sm font-medium hover:bg-stone-700 transition-colors"
+              >
+                ログアウト
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
