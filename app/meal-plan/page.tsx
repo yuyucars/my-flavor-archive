@@ -1,24 +1,56 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Navbar from '@/components/Navbar'
 
-export default function MealPlanPage() {
-  const [suggestion, setSuggestion] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+type Message = {
+  role: 'user' | 'ai'
+  content: string
+}
 
-  const handleGenerate = async () => {
+const SUGGESTIONS = [
+  '今日は疲れてるので簡単なものがいい',
+  '鶏肉を使いたい',
+  '今週作っていない料理を提案して',
+  '野菜たっぷりのメニューがいい',
+  '30分以内で作れるものは？',
+]
+
+export default function MealPlanPage() {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: 'ai',
+      content: 'こんにちは！今日の献立を一緒に考えましょう😊\n\n気分・使いたい食材・時間など、なんでも話しかけてください。登録済みのレシピをもとにおすすめを提案します！',
+    },
+  ])
+  const [input, setInput] = useState('')
+  const [loading, setLoading] = useState(false)
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  const sendMessage = async (text?: string) => {
+    const userMessage = text ?? input.trim()
+    if (!userMessage || loading) return
+
+    setInput('')
+    setMessages((prev) => [...prev, { role: 'user', content: userMessage }])
     setLoading(true)
-    setError('')
-    setSuggestion('')
+
     try {
-      const res = await fetch('/api/meal-plan', { method: 'POST' })
+      const res = await fetch('/api/meal-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMessage }),
+      })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || '生成に失敗しました')
-      setSuggestion(data.suggestion)
+      if (!res.ok) throw new Error(data.error || 'エラーが発生しました')
+      setMessages((prev) => [...prev, { role: 'ai', content: data.suggestion }])
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : '生成に失敗しました')
+      const msg = e instanceof Error ? e.message : 'エラーが発生しました'
+      setMessages((prev) => [...prev, { role: 'ai', content: `⚠️ ${msg}` }])
     } finally {
       setLoading(false)
     }
@@ -27,65 +59,77 @@ export default function MealPlanPage() {
   return (
     <>
       <Navbar />
-      <main className="max-w-2xl mx-auto px-4 py-8 pb-8 md:pb-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-light text-stone-800">AI献立提案</h1>
-          <p className="text-stone-400 text-sm mt-1">
-            しばらく作っていない料理を中心に、今週の献立を提案します
-          </p>
+      <main className="max-w-2xl mx-auto px-4 py-4 pb-40 md:pb-12 flex flex-col" style={{ minHeight: 'calc(100vh - 112px)' }}>
+        <h1 className="text-xl font-light text-stone-800 mb-4">AI献立提案</h1>
+
+        {/* チャット履歴 */}
+        <div className="flex-1 space-y-4 mb-4">
+          {messages.map((msg, i) => (
+            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              {msg.role === 'ai' && (
+                <span className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-sm mr-2 flex-shrink-0 mt-1">🤖</span>
+              )}
+              <div
+                className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                  msg.role === 'user'
+                    ? 'bg-stone-800 text-white rounded-tr-sm'
+                    : 'bg-white border border-stone-100 text-stone-700 rounded-tl-sm'
+                }`}
+              >
+                {msg.content}
+              </div>
+            </div>
+          ))}
+
+          {loading && (
+            <div className="flex justify-start">
+              <span className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-sm mr-2 flex-shrink-0">🤖</span>
+              <div className="bg-white border border-stone-100 rounded-2xl rounded-tl-sm px-4 py-3">
+                <span className="flex gap-1">
+                  <span className="w-2 h-2 bg-stone-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-2 h-2 bg-stone-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-2 h-2 bg-stone-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </span>
+              </div>
+            </div>
+          )}
+          <div ref={bottomRef} />
         </div>
 
-        <div className="bg-white rounded-2xl border border-stone-100 p-6">
-          <div className="flex items-start gap-4 mb-6">
-            <span className="text-3xl">🤖</span>
-            <div>
-              <p className="font-medium text-stone-700">AIが献立を考えます</p>
-              <p className="text-sm text-stone-400 mt-1">
-                登録済みのレシピと最終調理日をもとに、バランスの良い献立を提案します。
-                「しばらく作っていない料理」を優先的に提案するので、毎回新鮮な献立が楽しめます。
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={handleGenerate}
-            disabled={loading}
-            className="w-full py-3 bg-stone-800 text-white rounded-full font-medium hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? '献立を考えています...' : '✨ 今週の献立を提案してもらう'}
-          </button>
-
-          {error && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600">
-              {error}
-            </div>
-          )}
-
-          {suggestion && (
-            <div className="mt-6 pt-6 border-t border-stone-100">
-              <div className="prose prose-stone prose-sm max-w-none">
-                {suggestion.split('\n').map((line, i) => {
-                  if (line.startsWith('## ')) {
-                    return <h2 key={i} className="text-base font-medium text-stone-800 mt-4 mb-3">{line.replace('## ', '')}</h2>
-                  }
-                  if (line.startsWith('**') && line.endsWith('**')) {
-                    return <p key={i} className="font-medium text-stone-700 mt-3">{line.replace(/\*\*/g, '')}</p>
-                  }
-                  if (line.startsWith('→')) {
-                    return <p key={i} className="text-stone-500 text-sm ml-3">{line}</p>
-                  }
-                  if (line.trim() === '') return <div key={i} className="h-1" />
-                  return <p key={i} className="text-stone-600 text-sm">{line}</p>
-                })}
-              </div>
+        {/* 定型文ボタン（最初のみ表示） */}
+        {messages.length <= 1 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {SUGGESTIONS.map((s) => (
               <button
-                onClick={handleGenerate}
-                className="mt-4 text-sm text-stone-400 hover:text-stone-600 transition-colors"
+                key={s}
+                onClick={() => sendMessage(s)}
+                className="px-3 py-1.5 bg-white border border-stone-200 rounded-full text-xs text-stone-600 hover:bg-stone-50 transition-colors"
               >
-                🔄 もう一度提案してもらう
+                {s}
               </button>
-            </div>
-          )}
+            ))}
+          </div>
+        )}
+
+        {/* 入力欄（固定） */}
+        <div className="fixed bottom-16 left-0 right-0 md:relative md:bottom-auto bg-white/90 backdrop-blur-sm border-t border-stone-100 md:border-0 px-4 py-3 md:p-0">
+          <div className="max-w-2xl mx-auto flex gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+              placeholder="食材・気分・時間などを入力..."
+              className="flex-1 px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-full text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300"
+            />
+            <button
+              onClick={() => sendMessage()}
+              disabled={loading || !input.trim()}
+              className="px-4 py-2.5 bg-stone-800 text-white rounded-full text-sm font-medium hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              送信
+            </button>
+          </div>
         </div>
       </main>
     </>
