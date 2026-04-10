@@ -78,10 +78,10 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
             {/* 材料 */}
             {r.ingredients && r.ingredients.length > 0 && (
               <div>
-                <h2 className="text-sm font-medium text-stone-600 mb-3">材料</h2>
-                <ul className="space-y-1.5">
+                <h2 className="text-sm font-medium text-stone-600 mb-2">材料</h2>
+                <ul className="divide-y divide-stone-100">
                   {r.ingredients.map((ing, i) => (
-                    <li key={i} className="flex justify-between gap-4 text-sm">
+                    <li key={i} className="flex justify-between gap-4 text-sm py-2.5">
                       <span className="text-stone-700 min-w-0">{ing.name}</span>
                       <span className="text-stone-400 whitespace-nowrap flex-shrink-0">{ing.amount}</span>
                     </li>
@@ -93,10 +93,10 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
             {/* 作り方 */}
             {r.steps && r.steps.length > 0 && (
               <div>
-                <h2 className="text-sm font-medium text-stone-600 mb-3">作り方</h2>
-                <ol className="space-y-3">
+                <h2 className="text-sm font-medium text-stone-600 mb-2">作り方</h2>
+                <ol className="divide-y divide-stone-100">
                   {r.steps.map((step, i) => (
-                    <li key={i} className="flex gap-3">
+                    <li key={i} className="flex gap-3 py-3">
                       <span className="w-6 h-6 rounded-full bg-stone-100 text-stone-500 text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
                         {i + 1}
                       </span>
