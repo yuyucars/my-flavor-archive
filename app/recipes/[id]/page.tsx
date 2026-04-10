@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import CookedButton from './CookedButton'
 import DeleteButton from './DeleteButton'
+import EditButton from './EditButton'
 
 type Recipe = {
   id: string
@@ -56,7 +57,10 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
             {/* タイトルとボタン */}
             <div className="flex items-start justify-between gap-4">
               <h1 className="text-2xl font-light text-stone-800 leading-snug">{r.title}</h1>
-              <DeleteButton recipeId={r.id} />
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <EditButton recipeId={r.id} />
+                <DeleteButton recipeId={r.id} />
+              </div>
             </div>
 
             {/* 調理記録エリア */}
