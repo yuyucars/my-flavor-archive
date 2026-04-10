@@ -20,14 +20,20 @@ export default function CookedButton({
   const [showConfirm, setShowConfirm] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [showEditDate, setShowEditDate] = useState(false)
-  const toLocalDatetime = (iso: string) => {
+
+  const toLocalDate = (iso: string) => {
     const d = new Date(iso)
     const pad = (n: number) => String(n).padStart(2, '0')
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
   }
+
   const [editDate, setEditDate] = useState(
-    lastCookedAt ? toLocalDatetime(lastCookedAt) : toLocalDatetime(new Date().toISOString())
+    lastCookedAt ? toLocalDate(lastCookedAt) : toLocalDate(new Date().toISOString())
   )
+  const [editHour, setEditHour] = useState(
+    lastCookedAt ? new Date(lastCookedAt).getHours() : new Date().getHours()
+  )
+
   const supabase = createClient()
   const router = useRouter()
 
@@ -48,8 +54,8 @@ export default function CookedButton({
 
   const handleEditDate = async () => {
     setLoading(true)
-    // datetime-local の値をそのままDateに変換（ローカル時刻として解釈）
-    await supabase.from('recipes').update({ last_cooked_at: new Date(editDate).toISOString() }).eq('id', recipeId)
+    const dt = new Date(`${editDate}T${String(editHour).padStart(2, '0')}:00:00`)
+    await supabase.from('recipes').update({ last_cooked_at: dt.toISOString() }).eq('id', recipeId)
     setShowEditDate(false)
     setLoading(false)
     router.refresh()
@@ -61,36 +67,35 @@ export default function CookedButton({
 
   return (
     <>
-      {/* コンパクトな調理記録エリア */}
-      <div className="flex items-center justify-between bg-stone-50 rounded-2xl px-4 py-3">
-        <div className="flex items-center gap-3">
+      <div className="space-y-2">
+        {/* 調理記録エリア */}
+        <div className="flex items-center justify-between bg-stone-50 rounded-2xl px-4 py-3">
           <div>
             <p className="text-xs text-stone-400">最終調理日</p>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <p className="text-sm font-medium text-stone-700">{lastCookedLabel}</p>
-              <button
-                onClick={() => setShowEditDate(true)}
-                className="text-stone-300 hover:text-stone-500 transition-colors"
-                title="日付を修正"
-              >
-                ✏️
-              </button>
-            </div>
+            <p className="text-sm font-medium text-stone-700 mt-0.5">{lastCookedLabel}</p>
             {logs.length > 0 && (
               <button onClick={() => setShowHistory(true)} className="text-xs text-stone-400 hover:text-stone-600 mt-0.5">
                 🍳 {logs.length}回調理済み
               </button>
             )}
           </div>
+          <button
+            onClick={() => setShowConfirm(true)}
+            disabled={loading || done}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+              done ? 'bg-green-500 text-white' : 'bg-green-100 text-green-700 hover:bg-green-200'
+            } disabled:cursor-not-allowed`}
+          >
+            {done ? '✓ 記録!' : loading ? '...' : '✓ 今日作った'}
+          </button>
         </div>
+
+        {/* 調理日修正ボタン（目立つ位置に独立） */}
         <button
-          onClick={() => setShowConfirm(true)}
-          disabled={loading || done}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
-            done ? 'bg-green-500 text-white' : 'bg-green-100 text-green-700 hover:bg-green-200'
-          } disabled:cursor-not-allowed`}
+          onClick={() => setShowEditDate(true)}
+          className="w-full py-2 border border-stone-200 rounded-xl text-xs text-stone-400 hover:text-stone-600 hover:border-stone-300 hover:bg-stone-50 transition-colors"
         >
-          {done ? '✓ 記録!' : loading ? '...' : '✓ 今日作った'}
+          📅 最終調理日を修正する
         </button>
       </div>
 
@@ -117,14 +122,31 @@ export default function CookedButton({
         <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 px-4 pb-4 sm:pb-0">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
             <p className="text-lg font-medium text-stone-800 mb-1">最終調理日を修正</p>
-            <p className="text-sm text-stone-400 mb-4">実際に作った日付に変更できます</p>
-            <input
-              type="datetime-local"
-              value={editDate}
-              onChange={(e) => setEditDate(e.target.value)}
-              max={toLocalDatetime(new Date().toISOString())}
-              className="w-full px-4 py-3 border border-stone-200 rounded-xl text-stone-800 mb-4 focus:outline-none focus:ring-2 focus:ring-stone-300"
-            />
+            <p className="text-sm text-stone-400 mb-4">実際に作った日時に変更できます</p>
+            <div className="space-y-3 mb-4">
+              <div>
+                <label className="text-xs text-stone-500 mb-1 block">日付</label>
+                <input
+                  type="date"
+                  value={editDate}
+                  onChange={(e) => setEditDate(e.target.value)}
+                  max={toLocalDate(new Date().toISOString())}
+                  className="w-full px-4 py-3 border border-stone-200 rounded-xl text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-stone-500 mb-1 block">時間</label>
+                <select
+                  value={editHour}
+                  onChange={(e) => setEditHour(Number(e.target.value))}
+                  className="w-full px-4 py-3 border border-stone-200 rounded-xl text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300 bg-white"
+                >
+                  {Array.from({ length: 24 }, (_, i) => (
+                    <option key={i} value={i}>{String(i).padStart(2, '0')}時</option>
+                  ))}
+                </select>
+              </div>
+            </div>
             <div className="flex flex-col gap-2">
               <button
                 onClick={handleEditDate}
