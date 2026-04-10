@@ -81,9 +81,9 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
                 <h2 className="text-sm font-medium text-stone-600 mb-3">材料</h2>
                 <ul className="space-y-1.5">
                   {r.ingredients.map((ing, i) => (
-                    <li key={i} className="flex justify-between text-sm">
-                      <span className="text-stone-700">{ing.name}</span>
-                      <span className="text-stone-400">{ing.amount}</span>
+                    <li key={i} className="flex justify-between gap-4 text-sm">
+                      <span className="text-stone-700 min-w-0">{ing.name}</span>
+                      <span className="text-stone-400 whitespace-nowrap flex-shrink-0">{ing.amount}</span>
                     </li>
                   ))}
                 </ul>
