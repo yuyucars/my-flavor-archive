@@ -55,9 +55,9 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
           <div className="px-6 pt-6 pb-6 space-y-5">
 
             {/* タイトルとボタン */}
-            <div className="flex items-start justify-between gap-4">
+            <div className="space-y-3">
               <h1 className="text-2xl font-light text-stone-800 leading-snug">{r.title}</h1>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2">
                 <EditButton recipeId={r.id} />
                 <DeleteButton recipeId={r.id} />
               </div>
