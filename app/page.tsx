@@ -61,7 +61,7 @@ export default async function HomePage() {
             </Link>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
             {(recipes as Recipe[]).map((recipe) => (
               <Link
                 key={recipe.id}
@@ -72,14 +72,14 @@ export default async function HomePage() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={recipe.image_url} alt={recipe.title} className="w-full h-36 object-cover" />
                 )}
-                <div className="p-5">
-                  <h2 className="font-medium text-stone-800 group-hover:text-stone-600 transition-colors line-clamp-2 mb-3">
+                <div className="p-3 sm:p-5">
+                  <h2 className="font-medium text-stone-800 group-hover:text-stone-600 transition-colors line-clamp-2 mb-2 text-sm sm:text-base">
                     {recipe.title}
                   </h2>
                   <div className="flex items-center justify-between text-xs text-stone-400">
-                    <span>最終調理: {daysSince(recipe.last_cooked_at)}</span>
+                    <span>{daysSince(recipe.last_cooked_at)}</span>
                     {recipe.source_url && (
-                      <span className="bg-stone-50 px-2 py-0.5 rounded-full">URL元</span>
+                      <span className="bg-stone-50 px-1.5 py-0.5 rounded-full">URL</span>
                     )}
                   </div>
                 </div>
