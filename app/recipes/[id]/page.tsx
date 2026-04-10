@@ -63,9 +63,6 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
               </div>
             </div>
 
-            {/* 調理記録エリア */}
-            <CookedButton recipeId={r.id} logs={cookingLogs} lastCookedAt={r.last_cooked_at} />
-
             {/* レシピ元 */}
             {r.source_url && (
               <a
@@ -109,6 +106,11 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
                 </ol>
               </div>
             )}
+
+            {/* 調理記録エリア（一番下） */}
+            <div className="pt-2 border-t border-stone-100">
+              <CookedButton recipeId={r.id} logs={cookingLogs} lastCookedAt={r.last_cooked_at} />
+            </div>
           </div>
         </div>
       </main>
