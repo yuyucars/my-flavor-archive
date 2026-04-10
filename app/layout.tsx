@@ -2,12 +2,12 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'myrecipe',
+  title: 'モンレピ',
   description: 'あなただけの、とっておきレシピ帳',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    title: 'myrecipe',
+    title: 'モンレピ',
     statusBarStyle: 'default',
   },
 }

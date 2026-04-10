@@ -1,6 +1,6 @@
 {
-  "name": "myrecipe",
-  "short_name": "myrecipe",
+  "name": "モンレピ",
+  "short_name": "モンレピ",
   "description": "あなただけの、とっておきレシピ帳",
   "start_url": "/",
   "display": "standalone",
