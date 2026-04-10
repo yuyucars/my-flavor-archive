@@ -17,7 +17,8 @@ export default function Navbar() {
   }
 
   const navItems = [
-    { href: '/', label: 'レシピ一覧', icon: '📋' },
+    { href: '/', label: 'レシピ', icon: '📋' },
+    { href: '/favorites', label: 'お気に入り', icon: '⭐' },
     { href: '/recipes/new', label: '追加', icon: '➕' },
     { href: '/meal-plan', label: 'AI献立', icon: '🤖' },
   ]

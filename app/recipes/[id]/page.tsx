@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar'
 import CookedButton from './CookedButton'
 import DeleteButton from './DeleteButton'
 import EditButton from './EditButton'
+import FavoriteButton from './FavoriteButton'
 
 type Recipe = {
   id: string
@@ -13,6 +14,7 @@ type Recipe = {
   last_cooked_at: string | null
   image_url: string | null
   cooking_time: number | null
+  is_favorite: boolean
   ingredients: { name: string; amount: string }[] | null
   steps: { order: number; description: string }[] | null
   created_at: string
@@ -65,7 +67,8 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
             {/* タイトルとボタン */}
             <div className="space-y-3">
               <h1 className="text-2xl font-light text-stone-800 leading-snug">{r.title}</h1>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <FavoriteButton recipeId={r.id} initialFavorite={r.is_favorite ?? false} />
                 <EditButton recipeId={r.id} />
                 <DeleteButton recipeId={r.id} />
               </div>
