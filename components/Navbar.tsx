@@ -76,7 +76,7 @@ export default function Navbar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-1 flex-1 py-2 rounded-xl transition-colors ${
+              className={`flex flex-col items-center gap-1 flex-1 py-2 rounded-xl transition-colors active:scale-95 active:opacity-60 ${
                 pathname === item.href
                   ? 'text-stone-800'
                   : 'text-stone-400'

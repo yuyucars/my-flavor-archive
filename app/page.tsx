@@ -66,7 +66,7 @@ export default async function HomePage() {
               <Link
                 key={recipe.id}
                 href={`/recipes/${recipe.id}`}
-                className="group bg-white rounded-2xl border border-stone-100 overflow-hidden hover:shadow-md hover:border-stone-200 transition-all"
+                className="group bg-white rounded-2xl border border-stone-100 overflow-hidden hover:shadow-md hover:border-stone-200 transition-all active:scale-95 active:opacity-70"
               >
                 {recipe.image_url && (
                   // eslint-disable-next-line @next/next/no-img-element
