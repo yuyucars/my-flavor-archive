@@ -103,7 +103,7 @@ export default function NewRecipePage() {
               value={sourceUrl}
               onChange={(e) => setSourceUrl(e.target.value)}
               placeholder="https://..."
-              className="flex-1 px-3 py-2 bg-white border border-amber-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 text-stone-700"
+              className="flex-1 px-3 py-2 bg-white border border-amber-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-amber-300 text-stone-700"
             />
             <button
               type="button"
@@ -150,14 +150,14 @@ export default function NewRecipePage() {
                     value={ing.name}
                     onChange={(e) => updateIngredient(i, 'name', e.target.value)}
                     placeholder="材料名"
-                    className="flex-1 px-3 py-2 bg-white border border-stone-200 rounded-xl text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300"
+                    className="flex-1 px-3 py-2 bg-white border border-stone-200 rounded-xl text-base text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300"
                   />
                   <input
                     type="text"
                     value={ing.amount}
                     onChange={(e) => updateIngredient(i, 'amount', e.target.value)}
                     placeholder="分量"
-                    className="w-28 px-3 py-2 bg-white border border-stone-200 rounded-xl text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300"
+                    className="w-28 px-3 py-2 bg-white border border-stone-200 rounded-xl text-base text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300"
                   />
                   <button
                     type="button"
@@ -192,7 +192,7 @@ export default function NewRecipePage() {
                     onChange={(e) => updateStep(i, e.target.value)}
                     placeholder={`手順 ${i + 1}`}
                     rows={2}
-                    className="flex-1 px-3 py-2 bg-white border border-stone-200 rounded-xl text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300 resize-none"
+                    className="flex-1 px-3 py-2 bg-white border border-stone-200 rounded-xl text-base text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300 resize-none"
                   />
                   <button
                     type="button"

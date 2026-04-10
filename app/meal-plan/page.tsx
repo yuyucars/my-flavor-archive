@@ -120,7 +120,7 @@ export default function MealPlanPage() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
               placeholder="食材・気分・時間などを入力..."
-              className="flex-1 px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-full text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300"
+              className="flex-1 px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-full text-base text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300"
             />
             <button
               onClick={() => sendMessage()}
