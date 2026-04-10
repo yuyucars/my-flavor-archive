@@ -59,25 +59,8 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
               <DeleteButton recipeId={r.id} />
             </div>
 
-            {/* 今日作ったボタン＋説明 */}
-            <div className="bg-green-50 border border-green-100 rounded-2xl p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium text-green-800">今日作りましたか？</p>
-                  <p className="text-xs text-green-600 mt-0.5">
-                    記録するとAIが「しばらく作っていない料理」を把握して、献立提案がよりあなたに合ったものになります📊
-                  </p>
-                </div>
-                <CookedButton recipeId={r.id} logs={cookingLogs} />
-              </div>
-            </div>
-
-            {/* 最終調理日 */}
-            {r.last_cooked_at && (
-              <p className="text-xs text-stone-400">
-                最終調理: {new Date(r.last_cooked_at).toLocaleDateString('ja-JP')}
-              </p>
-            )}
+            {/* 調理記録エリア */}
+            <CookedButton recipeId={r.id} logs={cookingLogs} lastCookedAt={r.last_cooked_at} />
 
             {/* レシピ元 */}
             {r.source_url && (
