@@ -12,9 +12,17 @@ type Recipe = {
   source_url: string | null
   last_cooked_at: string | null
   image_url: string | null
+  cooking_time: number | null
   ingredients: { name: string; amount: string }[] | null
   steps: { order: number; description: string }[] | null
   created_at: string
+}
+
+function formatCookingTime(minutes: number): string {
+  if (minutes < 60) return `${minutes}分`
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return m > 0 ? `${h}時間${m}分` : `${h}時間`
 }
 
 type CookingLog = {
@@ -62,6 +70,14 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
                 <DeleteButton recipeId={r.id} />
               </div>
             </div>
+
+            {/* 調理時間 */}
+            {r.cooking_time && (
+              <div className="flex items-center gap-1.5 text-sm text-stone-500">
+                <span>⏱</span>
+                <span>{formatCookingTime(r.cooking_time)}</span>
+              </div>
+            )}
 
             {/* レシピ元 */}
             {r.source_url && (

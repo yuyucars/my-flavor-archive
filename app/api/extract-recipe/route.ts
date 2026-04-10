@@ -66,13 +66,16 @@ ${text}
 必ず以下のJSON形式のみで返答してください（\`\`\`json などのコードブロックは不要）:
 {
   "title": "料理名",
+  "cooking_time": 30,
   "ingredients": [
     { "name": "材料名", "amount": "分量" }
   ],
   "steps": [
     { "order": 1, "description": "手順の説明" }
   ]
-}`,
+}
+
+cooking_timeは調理時間の合計（分単位の整数）です。不明な場合はnullにしてください。`,
         },
       ],
       temperature: 0.1,

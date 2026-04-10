@@ -16,6 +16,7 @@ export default function NewRecipePage() {
   const [title, setTitle] = useState('')
   const [imageUrl, setImageUrl] = useState('')
   const [sourceUrl, setSourceUrl] = useState('')
+  const [cookingTime, setCookingTime] = useState<string>('')
   const [ingredients, setIngredients] = useState<Ingredient[]>([{ name: '', amount: '' }])
   const [steps, setSteps] = useState<Step[]>([{ order: 1, description: '' }])
   const [loading, setLoading] = useState(false)
@@ -35,6 +36,7 @@ export default function NewRecipePage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '抽出に失敗しました')
       if (data.title) setTitle(data.title)
+      if (data.cooking_time) setCookingTime(String(data.cooking_time))
       if (data.ingredients?.length) setIngredients(data.ingredients)
       if (data.steps?.length) setSteps(data.steps)
       if (data.image_url) setImageUrl(data.image_url)
@@ -58,6 +60,7 @@ export default function NewRecipePage() {
         user_id: user.id,
         title: title.trim(),
         source_url: sourceUrl.trim() || null,
+        cooking_time: cookingTime ? parseInt(cookingTime) : null,
         ingredients: ingredients.filter(i => i.name.trim()),
         steps: steps.filter(s => s.description.trim()),
         image_url: imageUrl || null,
@@ -137,6 +140,22 @@ export default function NewRecipePage() {
               required
               className="w-full px-4 py-2.5 bg-white border border-stone-200 rounded-xl text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300"
             />
+          </div>
+
+          {/* 調理時間 */}
+          <div>
+            <label className="block text-sm font-medium text-stone-600 mb-1">調理時間（分）</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                value={cookingTime}
+                onChange={(e) => setCookingTime(e.target.value)}
+                placeholder="例：30"
+                min="1"
+                className="w-32 px-4 py-2.5 bg-white border border-stone-200 rounded-xl text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300"
+              />
+              <span className="text-sm text-stone-400">分</span>
+            </div>
           </div>
 
           {/* 材料 */}
