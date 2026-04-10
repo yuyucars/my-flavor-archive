@@ -20,8 +20,13 @@ export default function CookedButton({
   const [showConfirm, setShowConfirm] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [showEditDate, setShowEditDate] = useState(false)
+  const toLocalDatetime = (iso: string) => {
+    const d = new Date(iso)
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
   const [editDate, setEditDate] = useState(
-    lastCookedAt ? new Date(lastCookedAt).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10)
+    lastCookedAt ? toLocalDatetime(lastCookedAt) : toLocalDatetime(new Date().toISOString())
   )
   const supabase = createClient()
   const router = useRouter()
@@ -43,6 +48,7 @@ export default function CookedButton({
 
   const handleEditDate = async () => {
     setLoading(true)
+    // datetime-local の値をそのままDateに変換（ローカル時刻として解釈）
     await supabase.from('recipes').update({ last_cooked_at: new Date(editDate).toISOString() }).eq('id', recipeId)
     setShowEditDate(false)
     setLoading(false)
@@ -113,10 +119,10 @@ export default function CookedButton({
             <p className="text-lg font-medium text-stone-800 mb-1">最終調理日を修正</p>
             <p className="text-sm text-stone-400 mb-4">実際に作った日付に変更できます</p>
             <input
-              type="date"
+              type="datetime-local"
               value={editDate}
               onChange={(e) => setEditDate(e.target.value)}
-              max={new Date().toISOString().slice(0, 10)}
+              max={toLocalDatetime(new Date().toISOString())}
               className="w-full px-4 py-3 border border-stone-200 rounded-xl text-stone-800 mb-4 focus:outline-none focus:ring-2 focus:ring-stone-300"
             />
             <div className="flex flex-col gap-2">

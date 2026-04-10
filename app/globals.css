@@ -24,3 +24,14 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* タップ遅延を除去してスマホの反応を高速化 */
+button, a {
+  touch-action: manipulation;
+}
+
+/* タップ時の即時フィードバック */
+button:active {
+  opacity: 0.75;
+  transform: scale(0.97);
+}
