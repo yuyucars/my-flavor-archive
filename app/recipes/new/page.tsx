@@ -127,7 +127,7 @@ export default function NewRecipePage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* 画像 */}
-          <ImageUpload onUpload={setImageUrl} />
+          <ImageUpload onUpload={setImageUrl} currentUrl={imageUrl} />
 
           {/* タイトル */}
           <div>

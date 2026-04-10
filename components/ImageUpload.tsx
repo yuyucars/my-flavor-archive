@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 type Props = {
@@ -12,6 +12,11 @@ export default function ImageUpload({ onUpload, currentUrl }: Props) {
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string>(currentUrl || '')
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // URL自動抽出などで外部からcurrentUrlが変わったときにプレビューを更新
+  useEffect(() => {
+    if (currentUrl) setPreview(currentUrl)
+  }, [currentUrl])
   const supabase = createClient()
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
