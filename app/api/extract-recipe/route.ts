@@ -3,19 +3,45 @@ import { NextResponse } from 'next/server'
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
+function extractImageUrl(html: string, baseUrl: string): string | null {
+  // og:image を優先
+  const ogImage = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+    ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
+  if (ogImage?.[1]) return toAbsoluteUrl(ogImage[1], baseUrl)
+
+  // twitter:image
+  const twitterImage = html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
+    ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i)
+  if (twitterImage?.[1]) return toAbsoluteUrl(twitterImage[1], baseUrl)
+
+  return null
+}
+
+function toAbsoluteUrl(url: string, base: string): string {
+  if (url.startsWith('http')) return url
+  if (url.startsWith('//')) return 'https:' + url
+  try {
+    return new URL(url, base).href
+  } catch {
+    return url
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const { url } = await request.json()
     if (!url) return NextResponse.json({ error: 'URLが必要です' }, { status: 400 })
 
-    // URLのコンテンツを取得
     const pageRes = await fetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RecipeBot/1.0)' },
     })
     if (!pageRes.ok) throw new Error('URLの取得に失敗しました')
     const html = await pageRes.text()
 
-    // HTMLから本文テキストを簡易抽出（タグを除去）
+    // 画像URLを抽出
+    const imageUrl = extractImageUrl(html, url)
+
+    // テキスト抽出
     const text = html
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
@@ -53,12 +79,14 @@ ${text}
     })
 
     const responseText = completion.choices[0]?.message?.content || ''
-
-    // JSONを抽出
     const jsonMatch = responseText.match(/\{[\s\S]*\}/)
     if (!jsonMatch) throw new Error('AIからの応答を解析できませんでした')
 
     const parsed = JSON.parse(jsonMatch[0])
+
+    // 画像URLをレスポンスに追加
+    if (imageUrl) parsed.image_url = imageUrl
+
     return NextResponse.json(parsed)
   } catch (e: unknown) {
     console.error('[extract-recipe error]', e)

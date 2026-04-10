@@ -37,6 +37,7 @@ export default function NewRecipePage() {
       if (data.title) setTitle(data.title)
       if (data.ingredients?.length) setIngredients(data.ingredients)
       if (data.steps?.length) setSteps(data.steps)
+      if (data.image_url) setImageUrl(data.image_url)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : '抽出に失敗しました')
     } finally {

@@ -12,11 +12,13 @@ type Log = {
 export default function CookedButton({ recipeId, logs }: { recipeId: string; logs: Log[] }) {
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const supabase = createClient()
   const router = useRouter()
 
   const handleCooked = async () => {
+    setShowConfirm(false)
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
@@ -36,7 +38,7 @@ export default function CookedButton({ recipeId, logs }: { recipeId: string; log
   return (
     <div className="flex flex-col items-end gap-1">
       <button
-        onClick={handleCooked}
+        onClick={() => setShowConfirm(true)}
         disabled={loading || done}
         className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
           done
@@ -47,7 +49,6 @@ export default function CookedButton({ recipeId, logs }: { recipeId: string; log
         {done ? '✓ 記録しました！' : loading ? '記録中...' : '✓ 今日作った'}
       </button>
 
-      {/* 調理回数・履歴ボタン */}
       {logs.length > 0 && (
         <button
           onClick={() => setShowHistory(true)}
@@ -55,6 +56,30 @@ export default function CookedButton({ recipeId, logs }: { recipeId: string; log
         >
           🍳 {logs.length}回調理済み
         </button>
+      )}
+
+      {/* 確認モーダル */}
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 px-4 pb-4 sm:pb-0">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+            <p className="text-lg font-medium text-stone-800 mb-2">今日作りましたか？</p>
+            <p className="text-sm text-stone-400 mb-6">今日の日付で調理記録が保存されます。</p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={handleCooked}
+                className="w-full py-3 bg-green-500 text-white rounded-full text-sm font-medium hover:bg-green-600 transition-colors"
+              >
+                ✓ はい、作りました！
+              </button>
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="w-full py-3 border border-stone-200 rounded-full text-stone-600 text-sm hover:bg-stone-50 transition-colors"
+              >
+                キャンセル
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* 調理履歴モーダル */}
