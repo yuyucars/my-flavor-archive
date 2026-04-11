@@ -20,7 +20,7 @@ export default function MealPlanPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'ai',
-      content: 'こんにちは！今日の献立を一緒に考えましょう😊\n\n気分・使いたい食材・時間など、なんでも話しかけてください。登録済みのレシピをもとにおすすめを提案します！',
+      content: 'こんにちは！今日の献立を一緒に考えましょう😊\n\n気分・使いたい食材・時間など、なんでも話しかけてください。登録済みレシピはもちろん、新しいメニューも幅広く提案します！',
     },
   ])
   const [input, setInput] = useState('')
