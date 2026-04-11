@@ -92,13 +92,27 @@ export default function MealPlanPage() {
                 <span className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-sm mr-2 flex-shrink-0 mt-1">🤖</span>
               )}
               <div
-                className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                   msg.role === 'user'
                     ? 'bg-stone-800 text-white rounded-tr-sm'
                     : 'bg-white border border-stone-100 text-stone-700 rounded-tl-sm'
                 }`}
               >
-                {msg.content}
+                {msg.content.split(/(https?:\/\/[^\s]+)/g).map((part, j) =>
+                  /^https?:\/\//.test(part) ? (
+                    <a
+                      key={j}
+                      href={part}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`underline break-all ${msg.role === 'user' ? 'text-stone-300' : 'text-stone-500'}`}
+                    >
+                      {part}
+                    </a>
+                  ) : (
+                    <span key={j} className="whitespace-pre-wrap">{part}</span>
+                  )
+                )}
               </div>
             </div>
           ))}
