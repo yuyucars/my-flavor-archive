@@ -18,6 +18,7 @@ export default function NewRecipePage() {
   const [sourceUrl, setSourceUrl] = useState('')
   const [cookingTime, setCookingTime] = useState<string>('')
   const [servings, setServings] = useState<string>('2')
+  const [genre, setGenre] = useState<string>('')
   const [ingredients, setIngredients] = useState<Ingredient[]>([{ name: '', amount: '' }])
   const [steps, setSteps] = useState<Step[]>([{ order: 1, description: '' }])
   const [loading, setLoading] = useState(false)
@@ -39,6 +40,7 @@ export default function NewRecipePage() {
       if (data.title) setTitle(data.title)
       if (data.cooking_time) setCookingTime(String(data.cooking_time))
       if (data.servings) setServings(String(data.servings))
+      if (data.genre) setGenre(data.genre as string)
       if (data.ingredients?.length) setIngredients(data.ingredients)
       if (data.steps?.length) setSteps(data.steps)
       if (data.image_url) setImageUrl(data.image_url)
@@ -64,6 +66,7 @@ export default function NewRecipePage() {
         source_url: sourceUrl.trim() || null,
         cooking_time: cookingTime ? parseInt(cookingTime) : null,
         servings: servings ? parseInt(servings) : 2,
+        genre: genre || null,
         ingredients: ingredients.filter(i => i.name.trim()),
         steps: steps.filter(s => s.description.trim()),
         image_url: imageUrl || null,
@@ -143,6 +146,27 @@ export default function NewRecipePage() {
               required
               className="w-full px-4 py-2.5 bg-white border border-stone-200 rounded-xl text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300"
             />
+          </div>
+
+          {/* ジャンル */}
+          <div>
+            <label className="block text-sm font-medium text-stone-600 mb-1">ジャンル</label>
+            <div className="flex gap-2 flex-wrap">
+              {['和食','洋食','中華','イタリアン','アジア料理','その他'].map(g => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => setGenre(genre === g ? '' : g)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    genre === g
+                      ? 'bg-stone-800 text-white'
+                      : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
+                  }`}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* 人数・調理時間 */}

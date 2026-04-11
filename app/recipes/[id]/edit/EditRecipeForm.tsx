@@ -14,6 +14,7 @@ type Recipe = {
   image_url: string | null
   cooking_time: number | null
   servings: number | null
+  genre: string | null
   ingredients: Ingredient[] | null
   steps: Step[] | null
 }
@@ -27,6 +28,7 @@ export default function EditRecipeForm({ recipe }: { recipe: Recipe }) {
   const [imageUrl, setImageUrl] = useState(recipe.image_url ?? '')
   const [cookingTime, setCookingTime] = useState<string>(recipe.cooking_time ? String(recipe.cooking_time) : '')
   const [servings, setServings] = useState<string>(recipe.servings ? String(recipe.servings) : '2')
+  const [genre, setGenre] = useState<string>(recipe.genre ?? '')
   const [ingredients, setIngredients] = useState<Ingredient[]>(
     recipe.ingredients?.length ? recipe.ingredients : [{ name: '', amount: '' }]
   )
@@ -50,6 +52,7 @@ export default function EditRecipeForm({ recipe }: { recipe: Recipe }) {
           image_url: imageUrl || null,
           cooking_time: cookingTime ? parseInt(cookingTime) : null,
           servings: servings ? parseInt(servings) : 2,
+          genre: genre || null,
           ingredients: ingredients.filter(i => i.name.trim()),
           steps: steps.filter(s => s.description.trim()),
         })
@@ -101,6 +104,27 @@ export default function EditRecipeForm({ recipe }: { recipe: Recipe }) {
           required
           className="w-full px-4 py-2.5 bg-white border border-stone-200 rounded-xl text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300"
         />
+      </div>
+
+      {/* ジャンル */}
+      <div>
+        <label className="block text-sm font-medium text-stone-600 mb-1">ジャンル</label>
+        <div className="flex gap-2 flex-wrap">
+          {['和食','洋食','中華','イタリアン','アジア料理','その他'].map(g => (
+            <button
+              key={g}
+              type="button"
+              onClick={() => setGenre(genre === g ? '' : g)}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                genre === g
+                  ? 'bg-stone-800 text-white'
+                  : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
+              }`}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 人数・調理時間 */}

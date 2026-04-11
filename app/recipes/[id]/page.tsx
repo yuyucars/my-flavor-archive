@@ -16,6 +16,7 @@ type Recipe = {
   image_url: string | null
   cooking_time: number | null
   servings: number | null
+  genre: string | null
   is_favorite: boolean
   ingredients: { name: string; amount: string }[] | null
   steps: { order: number; description: string }[] | null
@@ -75,6 +76,13 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
                 <DeleteButton recipeId={r.id} />
               </div>
             </div>
+
+            {/* ジャンル */}
+            {r.genre && (
+              <span className="inline-block px-3 py-1 bg-stone-100 text-stone-500 text-xs rounded-full">
+                {r.genre}
+              </span>
+            )}
 
             {/* 人数・調理時間 */}
             {(r.servings || r.cooking_time) && (

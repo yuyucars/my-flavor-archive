@@ -13,8 +13,8 @@ export default async function HomePage() {
   return (
     <>
       <Navbar />
-      <main className="max-w-4xl mx-auto px-4 py-8 pb-8 md:pb-8">
-        <div className="flex items-center justify-between mb-8">
+      <main className="max-w-4xl mx-auto px-4 pt-4 pb-8 md:pb-8">
+        <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-light text-stone-800">レシピ一覧</h1>
           <Link
             href="/recipes/new"

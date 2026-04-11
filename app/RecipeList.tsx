@@ -11,8 +11,11 @@ type Recipe = {
   last_cooked_at: string | null
   image_url: string | null
   is_favorite: boolean
+  genre: string | null
   created_at: string
 }
+
+const GENRES = ['和食', '洋食', '中華', 'イタリアン', 'アジア料理', 'その他']
 
 function daysSince(dateStr: string | null): string {
   if (!dateStr) return '未調理'
@@ -24,10 +27,11 @@ function daysSince(dateStr: string | null): string {
 
 let cachedRecipes: Recipe[] | null = null
 
-export default function RecipeList() {
+export default function RecipeList({ favoritesOnly = false }: { favoritesOnly?: boolean }) {
   const [recipes, setRecipes] = useState<Recipe[] | null>(cachedRecipes)
   const [loading, setLoading] = useState(cachedRecipes === null)
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc')
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null)
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [processing, setProcessing] = useState(false)
@@ -123,6 +127,20 @@ export default function RecipeList() {
   }
 
   if (!recipes || recipes.length === 0) {
+    if (favoritesOnly) {
+      return (
+        <div className="text-center py-24 space-y-4">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-16 h-16 mx-auto text-stone-300">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+          </svg>
+          <p className="text-stone-500">お気に入りはまだありません</p>
+          <p className="text-stone-400 text-sm">レシピ詳細ページの ♡ ボタンで登録できます</p>
+          <Link href="/" className="inline-block mt-2 px-6 py-2.5 bg-stone-800 text-white rounded-full text-sm hover:bg-stone-700 transition-colors">
+            レシピ一覧へ
+          </Link>
+        </div>
+      )
+    }
     return (
       <div className="text-center py-24 space-y-4">
         <p className="text-5xl">🍳</p>
@@ -138,16 +156,49 @@ export default function RecipeList() {
     )
   }
 
+  const noResults = sortedRecipes.length === 0 && (selectedGenre !== null || favoritesOnly)
+
   const allFavoritedInSelection = selected.size > 0 &&
     Array.from(selected).every(id => recipes.find(r => r.id === id)?.is_favorite)
 
-  const sortedRecipes = [...recipes].sort((a, b) => {
+  const filteredRecipes = recipes
+    .filter(r => !favoritesOnly || r.is_favorite)
+    .filter(r => !selectedGenre || r.genre === selectedGenre)
+
+  const sortedRecipes = [...filteredRecipes].sort((a, b) => {
     const diff = new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     return sortOrder === 'desc' ? diff : -diff
   })
 
   return (
     <>
+      {/* ジャンルフィルター */}
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
+        <button
+          onClick={() => setSelectedGenre(null)}
+          className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            selectedGenre === null
+              ? 'bg-stone-800 text-white'
+              : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
+          }`}
+        >
+          すべて
+        </button>
+        {GENRES.map(genre => (
+          <button
+            key={genre}
+            onClick={() => setSelectedGenre(selectedGenre === genre ? null : genre)}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              selectedGenre === genre
+                ? 'bg-stone-800 text-white'
+                : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
+            }`}
+          >
+            {genre}
+          </button>
+        ))}
+      </div>
+
       {/* 選択モード切替ヘッダー */}
       <div className="flex items-center justify-between mb-4">
         {selectMode ? (
@@ -204,8 +255,19 @@ export default function RecipeList() {
         )}
       </div>
 
+      {/* 絞り込み結果0件 */}
+      {noResults && (
+        <div className="text-center py-16 space-y-2">
+          <p className="text-3xl">🔍</p>
+          <p className="text-stone-500 text-sm">「{selectedGenre}」のレシピはありません</p>
+          <button onClick={() => setSelectedGenre(null)} className="text-xs text-stone-400 underline">
+            フィルターを解除
+          </button>
+        </div>
+      )}
+
       {/* レシピグリッド */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+      {!noResults && <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         {sortedRecipes.map((recipe) => {
           const isSelected = selected.has(recipe.id)
           return selectMode ? (
@@ -275,6 +337,8 @@ export default function RecipeList() {
           )
         })}
       </div>
+
+      }
 
       {/* 選択時のアクションバー */}
       {selectMode && selected.size > 0 && (
