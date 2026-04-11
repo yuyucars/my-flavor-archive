@@ -6,6 +6,7 @@ import CookedButton from './CookedButton'
 import DeleteButton from './DeleteButton'
 import EditButton from './EditButton'
 import FavoriteButton from './FavoriteButton'
+import ServingsCalculator from './ServingsCalculator'
 
 type Recipe = {
   id: string
@@ -14,6 +15,7 @@ type Recipe = {
   last_cooked_at: string | null
   image_url: string | null
   cooking_time: number | null
+  servings: number | null
   is_favorite: boolean
   ingredients: { name: string; amount: string }[] | null
   steps: { order: number; description: string }[] | null
@@ -74,11 +76,21 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
               </div>
             </div>
 
-            {/* 調理時間 */}
-            {r.cooking_time && (
-              <div className="flex items-center gap-1.5 text-sm text-stone-500">
-                <span>⏱</span>
-                <span>{formatCookingTime(r.cooking_time)}</span>
+            {/* 人数・調理時間 */}
+            {(r.servings || r.cooking_time) && (
+              <div className="flex items-center gap-4 text-sm text-stone-500">
+                {r.servings && (
+                  <div className="flex items-center gap-1.5">
+                    <span>👤</span>
+                    <span>{r.servings}人分</span>
+                  </div>
+                )}
+                {r.cooking_time && (
+                  <div className="flex items-center gap-1.5">
+                    <span>⏱</span>
+                    <span>{formatCookingTime(r.cooking_time)}</span>
+                  </div>
+                )}
               </div>
             )}
 
@@ -94,19 +106,12 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
               </a>
             )}
 
-            {/* 材料 */}
+            {/* 材料（人数計算機能付き） */}
             {r.ingredients && r.ingredients.length > 0 && (
-              <div>
-                <h2 className="text-sm font-medium text-stone-600 mb-2">材料</h2>
-                <ul className="divide-y divide-stone-100">
-                  {r.ingredients.map((ing, i) => (
-                    <li key={i} className="flex justify-between gap-4 text-sm py-2.5">
-                      <span className="text-stone-700 min-w-0">{ing.name}</span>
-                      <span className="text-stone-400 whitespace-nowrap flex-shrink-0">{ing.amount}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <ServingsCalculator
+                ingredients={r.ingredients}
+                baseServings={r.servings ?? 2}
+              />
             )}
 
             {/* 作り方 */}

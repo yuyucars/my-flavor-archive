@@ -67,6 +67,7 @@ ${text}
 {
   "title": "料理名",
   "cooking_time": 30,
+  "servings": 2,
   "ingredients": [
     { "name": "材料名", "amount": "分量" }
   ],
@@ -75,7 +76,7 @@ ${text}
   ]
 }
 
-cooking_timeは調理時間の合計（分単位の整数）です。不明な場合はnullにしてください。`,
+cooking_timeは調理時間の合計（分単位の整数）、servingsは何人分か（整数）です。不明な場合はnullにしてください。`,
         },
       ],
       temperature: 0.1,

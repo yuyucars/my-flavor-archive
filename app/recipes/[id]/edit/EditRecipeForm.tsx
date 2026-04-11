@@ -13,6 +13,7 @@ type Recipe = {
   source_url: string | null
   image_url: string | null
   cooking_time: number | null
+  servings: number | null
   ingredients: Ingredient[] | null
   steps: Step[] | null
 }
@@ -25,6 +26,7 @@ export default function EditRecipeForm({ recipe }: { recipe: Recipe }) {
   const [sourceUrl, setSourceUrl] = useState(recipe.source_url ?? '')
   const [imageUrl, setImageUrl] = useState(recipe.image_url ?? '')
   const [cookingTime, setCookingTime] = useState<string>(recipe.cooking_time ? String(recipe.cooking_time) : '')
+  const [servings, setServings] = useState<string>(recipe.servings ? String(recipe.servings) : '2')
   const [ingredients, setIngredients] = useState<Ingredient[]>(
     recipe.ingredients?.length ? recipe.ingredients : [{ name: '', amount: '' }]
   )
@@ -47,6 +49,7 @@ export default function EditRecipeForm({ recipe }: { recipe: Recipe }) {
           source_url: sourceUrl.trim() || null,
           image_url: imageUrl || null,
           cooking_time: cookingTime ? parseInt(cookingTime) : null,
+          servings: servings ? parseInt(servings) : 2,
           ingredients: ingredients.filter(i => i.name.trim()),
           steps: steps.filter(s => s.description.trim()),
         })
@@ -100,19 +103,33 @@ export default function EditRecipeForm({ recipe }: { recipe: Recipe }) {
         />
       </div>
 
-      {/* 調理時間 */}
-      <div>
-        <label className="block text-sm font-medium text-stone-600 mb-1">調理時間（分）</label>
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            value={cookingTime}
-            onChange={(e) => setCookingTime(e.target.value)}
-            placeholder="例：30"
-            min="1"
-            className="w-32 px-4 py-2.5 bg-white border border-stone-200 rounded-xl text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300"
-          />
-          <span className="text-sm text-stone-400">分</span>
+      {/* 人数・調理時間 */}
+      <div className="flex gap-4">
+        <div>
+          <label className="block text-sm font-medium text-stone-600 mb-1">何人分</label>
+          <select
+            value={servings}
+            onChange={(e) => setServings(e.target.value)}
+            className="w-24 px-3 py-2.5 bg-white border border-stone-200 rounded-xl text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300"
+          >
+            {[1,2,3,4,5,6,7,8].map(n => (
+              <option key={n} value={n}>{n}人分</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-stone-600 mb-1">調理時間</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              value={cookingTime}
+              onChange={(e) => setCookingTime(e.target.value)}
+              placeholder="30"
+              min="1"
+              className="w-24 px-4 py-2.5 bg-white border border-stone-200 rounded-xl text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300"
+            />
+            <span className="text-sm text-stone-400">分</span>
+          </div>
         </div>
       </div>
 
