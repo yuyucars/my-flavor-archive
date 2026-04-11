@@ -17,6 +17,57 @@ type Recipe = {
 
 const GENRES = ['和食', '洋食', '中華', 'イタリアン', 'アジア料理', 'その他']
 
+const RANKS = [
+  { min: 0,   max: 4,        emoji: '🥚', name: '台所デビュー',   message: 'まずは5品を目指そう！' },
+  { min: 5,   max: 14,       emoji: '🍳', name: '料理初心者',     message: 'だんだん板についてきた！' },
+  { min: 15,  max: 29,       emoji: '🍜', name: '料理好き',       message: '腕前上々、上を目指せ！' },
+  { min: 30,  max: 49,       emoji: '👨‍🍳', name: '料理人',         message: 'もう立派な料理人だ！' },
+  { min: 50,  max: 79,       emoji: '🏆', name: '達人',           message: 'あなたは達人の域に！' },
+  { min: 80,  max: 99,       emoji: '🔥', name: '料理の鬼',       message: '鬼の如き探求心！' },
+  { min: 100, max: Infinity, emoji: '👑', name: '伝説の料理人',   message: 'まさに伝説！' },
+]
+
+function getRank(count: number) {
+  return RANKS.find(r => count >= r.min && count <= r.max) ?? RANKS[0]
+}
+
+function RankCard({ count }: { count: number }) {
+  const rank = getRank(count)
+  const nextRank = RANKS[RANKS.indexOf(rank) + 1]
+  const progress = nextRank
+    ? Math.round(((count - rank.min) / (nextRank.min - rank.min)) * 100)
+    : 100
+
+  return (
+    <div className="bg-gradient-to-r from-stone-50 to-stone-100 border border-stone-200 rounded-2xl px-4 py-3 mb-4 flex items-center gap-4">
+      <div className="text-4xl">{rank.emoji}</div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-0.5">
+          <span className="font-semibold text-stone-800 text-sm">{rank.name}</span>
+          <span className="text-xs text-stone-400">{count}品</span>
+        </div>
+        <p className="text-xs text-stone-400 mb-1.5">{rank.message}</p>
+        {nextRank && (
+          <div className="flex items-center gap-2">
+            <div className="flex-1 h-1.5 bg-stone-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-stone-600 rounded-full transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <span className="text-xs text-stone-400 whitespace-nowrap">
+              次：{nextRank.emoji}{nextRank.name}まで{nextRank.min - count}品
+            </span>
+          </div>
+        )}
+        {!nextRank && (
+          <p className="text-xs text-amber-500 font-medium">🎊 最高ランク達成！</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function daysSince(dateStr: string | null): string {
   if (!dateStr) return '未調理'
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24))
@@ -172,6 +223,9 @@ export default function RecipeList({ favoritesOnly = false }: { favoritesOnly?: 
 
   return (
     <>
+      {/* ランクカード（レシピ一覧のみ） */}
+      {!favoritesOnly && <RankCard count={recipes.length} />}
+
       {/* ジャンルフィルター */}
       <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
         <button
