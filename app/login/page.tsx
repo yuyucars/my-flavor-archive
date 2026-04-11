@@ -31,7 +31,7 @@ export default function LoginPage() {
       },
     })
     if (error) {
-      setError('メール送信に失敗しました。もう一度お試しください。')
+      setError(`送信失敗: ${error.message}`)
     } else {
       setSent(true)
     }
