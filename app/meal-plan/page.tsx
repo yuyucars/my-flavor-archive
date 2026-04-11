@@ -34,12 +34,21 @@ export default function MealPlanPage() {
   const router = useRouter()
   const supabase = createClient()
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'ai',
-      content: 'こんにちは！今日の献立を一緒に考えましょう😊\n\n気分・使いたい食材・時間など、なんでも話しかけてください。登録済みレシピはもちろん、新しいメニューも幅広く提案します！\n\n気に入ったレシピは「登録して」と言うとMonrepeに追加できます🍳',
-    },
-  ])
+  const STORAGE_KEY = 'monrepe-meal-plan-history'
+  const INITIAL_MESSAGE: Message = {
+    role: 'ai',
+    content: 'こんにちは！今日の献立を一緒に考えましょう😊\n\n気分・使いたい食材・時間など、なんでも話しかけてください。登録済みレシピはもちろん、新しいメニューも幅広く提案します！\n\n気に入ったレシピは「登録して」と言うとMonrepeに追加できます🍳',
+  }
+
+  const [messages, setMessages] = useState<Message[]>(() => {
+    if (typeof window === 'undefined') return [INITIAL_MESSAGE]
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      return saved ? JSON.parse(saved) : [INITIAL_MESSAGE]
+    } catch {
+      return [INITIAL_MESSAGE]
+    }
+  })
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [savingRecipe, setSavingRecipe] = useState<string | null>(null)
@@ -48,6 +57,16 @@ export default function MealPlanPage() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  // メッセージ変更時にlocalStorageに保存（最新50件まで）
+  useEffect(() => {
+    try {
+      const toSave = messages.slice(-50).map(m => ({ role: m.role, content: m.content }))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
+    } catch {
+      // localStorage容量超過時は無視
+    }
   }, [messages])
 
   // キーボード表示時に入力欄がキーボードの上に来るよう調整（iOS対応）
@@ -146,7 +165,18 @@ export default function MealPlanPage() {
     <>
       <Navbar />
       <main className="max-w-2xl mx-auto px-4 py-4 pb-40 md:pb-12 flex flex-col" style={{ minHeight: 'calc(100vh - 112px)' }}>
-        <h1 className="text-xl font-light text-stone-800 mb-4">AI献立提案</h1>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-light text-stone-800">AI献立提案</h1>
+          <button
+            onClick={() => {
+              localStorage.removeItem(STORAGE_KEY)
+              setMessages([INITIAL_MESSAGE])
+            }}
+            className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
+          >
+            履歴をリセット
+          </button>
+        </div>
 
         {/* チャット履歴 */}
         <div className="flex-1 space-y-4 mb-4">
