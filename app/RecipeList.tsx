@@ -156,8 +156,6 @@ export default function RecipeList({ favoritesOnly = false }: { favoritesOnly?: 
     )
   }
 
-  const noResults = sortedRecipes.length === 0 && (selectedGenre !== null || favoritesOnly)
-
   const allFavoritedInSelection = selected.size > 0 &&
     Array.from(selected).every(id => recipes.find(r => r.id === id)?.is_favorite)
 
@@ -169,6 +167,8 @@ export default function RecipeList({ favoritesOnly = false }: { favoritesOnly?: 
     const diff = new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     return sortOrder === 'desc' ? diff : -diff
   })
+
+  const noResults = sortedRecipes.length === 0 && (selectedGenre !== null || favoritesOnly)
 
   return (
     <>
