@@ -165,15 +165,13 @@ export default function MealPlanPage() {
                 >
                   {msg.content.split(/(https?:\/\/[^\s]+)/g).map((part, j) =>
                     /^https?:\/\//.test(part) ? (
-                      <a
+                      <button
                         key={j}
-                        href={part}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`underline break-all ${msg.role === 'user' ? 'text-stone-300' : 'text-stone-500'}`}
+                        onClick={() => window.open(part, '_blank', 'noopener,noreferrer')}
+                        className={`underline break-all text-left ${msg.role === 'user' ? 'text-stone-300' : 'text-blue-500'}`}
                       >
                         {part}
-                      </a>
+                      </button>
                     ) : (
                       <span key={j} className="whitespace-pre-wrap">{part}</span>
                     )
