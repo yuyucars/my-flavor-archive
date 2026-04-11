@@ -183,7 +183,7 @@ export default function MealPlanPage() {
           {messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.role === 'ai' && (
-                <span className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-sm mr-2 flex-shrink-0 mt-1">🤖</span>
+                <span className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-sm mr-2 flex-shrink-0 mt-1">👨‍🍳</span>
               )}
               <div className="max-w-[80%] space-y-2">
                 <div
@@ -193,23 +193,7 @@ export default function MealPlanPage() {
                       : 'bg-white border border-stone-100 text-stone-700 rounded-tl-sm'
                   }`}
                 >
-                  {msg.content.split(/(\[RECIPE_LINK:[^\]]+\])/g).map((part, j) => {
-                    const match = part.match(/^\[RECIPE_LINK:(.+)\]$/)
-                    if (match) {
-                      const recipeName = match[1]
-                      const url = `https://cookpad.com/search/${encodeURIComponent(recipeName)}`
-                      return (
-                        <button
-                          key={j}
-                          onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
-                          className="inline-flex items-center gap-1 mt-1 px-3 py-1.5 bg-orange-50 border border-orange-200 text-orange-600 rounded-full text-xs font-medium active:scale-95 transition-transform"
-                        >
-                          🔗 {recipeName}のレシピを見る
-                        </button>
-                      )
-                    }
-                    return <span key={j} className="whitespace-pre-wrap">{part}</span>
-                  })}
+                  <span className="whitespace-pre-wrap">{msg.content}</span>
                 </div>
 
                 {/* レシピ登録カード */}
@@ -254,7 +238,7 @@ export default function MealPlanPage() {
 
           {loading && (
             <div className="flex justify-start">
-              <span className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-sm mr-2 flex-shrink-0">🤖</span>
+              <span className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-sm mr-2 flex-shrink-0">👨‍🍳</span>
               <div className="bg-white border border-stone-100 rounded-2xl rounded-tl-sm px-4 py-3">
                 <span className="flex gap-1">
                   <span className="w-2 h-2 bg-stone-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
