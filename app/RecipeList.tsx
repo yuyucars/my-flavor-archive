@@ -32,6 +32,7 @@ function getRank(count: number) {
 }
 
 function RankCard({ count }: { count: number }) {
+  const [showList, setShowList] = useState(false)
   const rank = getRank(count)
   const nextRank = RANKS[RANKS.indexOf(rank) + 1]
   const progress = nextRank
@@ -39,32 +40,89 @@ function RankCard({ count }: { count: number }) {
     : 100
 
   return (
-    <div className="bg-gradient-to-r from-stone-50 to-stone-100 border border-stone-200 rounded-2xl px-4 py-3 mb-4 flex items-center gap-4">
-      <div className="text-4xl">{rank.emoji}</div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-0.5">
-          <span className="font-semibold text-stone-800 text-sm">{rank.name}</span>
-          <span className="text-xs text-stone-400">{count}品</span>
-        </div>
-        <p className="text-xs text-stone-400 mb-1.5">{rank.message}</p>
-        {nextRank && (
-          <div className="flex items-center gap-2">
-            <div className="flex-1 h-1.5 bg-stone-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-stone-600 rounded-full transition-all duration-500"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <span className="text-xs text-stone-400 whitespace-nowrap">
-              次：{nextRank.emoji}{nextRank.name}まで{nextRank.min - count}品
-            </span>
+    <>
+      <button
+        onClick={() => setShowList(true)}
+        className="w-full bg-gradient-to-r from-stone-50 to-stone-100 border border-stone-200 rounded-2xl px-4 py-3 mb-4 flex items-center gap-4 active:scale-95 transition-transform text-left"
+      >
+        <div className="text-4xl">{rank.emoji}</div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="font-semibold text-stone-800 text-sm">{rank.name}</span>
+            <span className="text-xs text-stone-400">{count}品</span>
           </div>
-        )}
-        {!nextRank && (
-          <p className="text-xs text-amber-500 font-medium">🎊 最高ランク達成！</p>
-        )}
-      </div>
-    </div>
+          <p className="text-xs text-stone-400 mb-1.5">{rank.message}</p>
+          {nextRank && (
+            <div className="flex items-center gap-2">
+              <div className="flex-1 h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-stone-600 rounded-full transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <span className="text-xs text-stone-400 whitespace-nowrap">
+                次まで{nextRank.min - count}品
+              </span>
+            </div>
+          )}
+          {!nextRank && (
+            <p className="text-xs text-amber-500 font-medium">🎊 最高ランク達成！</p>
+          )}
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-stone-300 flex-shrink-0">
+          <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 010-1.06z" clipRule="evenodd" />
+        </svg>
+      </button>
+
+      {/* ランク一覧モーダル */}
+      {showList && (
+        <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 px-4 pb-4 sm:pb-0">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+            <p className="text-lg font-medium text-stone-800 mb-4">🏅 ランク一覧</p>
+            <ul className="space-y-2 mb-5">
+              {RANKS.map((r) => {
+                const achieved = count >= r.min
+                const isCurrent = r === rank
+                return (
+                  <li
+                    key={r.name}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
+                      isCurrent
+                        ? 'bg-stone-800 text-white'
+                        : achieved
+                        ? 'bg-stone-50 text-stone-600'
+                        : 'text-stone-300'
+                    }`}
+                  >
+                    <span className="text-2xl">{r.emoji}</span>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{r.name}</span>
+                        {isCurrent && <span className="text-xs bg-white/20 px-1.5 py-0.5 rounded-full">現在</span>}
+                      </div>
+                      <span className={`text-xs ${isCurrent ? 'text-white/60' : 'text-stone-400'}`}>
+                        {r.max === Infinity ? `${r.min}品〜` : `${r.min}〜${r.max}品`}
+                      </span>
+                    </div>
+                    {achieved && !isCurrent && (
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-stone-400">
+                        <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+            <button
+              onClick={() => setShowList(false)}
+              className="w-full py-2.5 border border-stone-200 rounded-full text-stone-600 text-sm hover:bg-stone-50 transition-colors"
+            >
+              閉じる
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
