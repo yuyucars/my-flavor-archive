@@ -163,19 +163,23 @@ export default function MealPlanPage() {
                       : 'bg-white border border-stone-100 text-stone-700 rounded-tl-sm'
                   }`}
                 >
-                  {msg.content.split(/(https?:\/\/[^\s]+)/g).map((part, j) =>
-                    /^https?:\/\//.test(part) ? (
-                      <button
-                        key={j}
-                        onClick={() => window.open(part, '_blank', 'noopener,noreferrer')}
-                        className={`underline break-all text-left ${msg.role === 'user' ? 'text-stone-300' : 'text-blue-500'}`}
-                      >
-                        {part}
-                      </button>
-                    ) : (
-                      <span key={j} className="whitespace-pre-wrap">{part}</span>
-                    )
-                  )}
+                  {msg.content.split(/(\[RECIPE_LINK:[^\]]+\])/g).map((part, j) => {
+                    const match = part.match(/^\[RECIPE_LINK:(.+)\]$/)
+                    if (match) {
+                      const recipeName = match[1]
+                      const url = `https://cookpad.com/search/${encodeURIComponent(recipeName)}`
+                      return (
+                        <button
+                          key={j}
+                          onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
+                          className="inline-flex items-center gap-1 mt-1 px-3 py-1.5 bg-orange-50 border border-orange-200 text-orange-600 rounded-full text-xs font-medium active:scale-95 transition-transform"
+                        >
+                          🔗 {recipeName}のレシピを見る
+                        </button>
+                      )
+                    }
+                    return <span key={j} className="whitespace-pre-wrap">{part}</span>
+                  })}
                 </div>
 
                 {/* レシピ登録カード */}
