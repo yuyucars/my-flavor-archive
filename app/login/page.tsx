@@ -44,7 +44,7 @@ export default function LoginPage() {
 
         {/* タイトル */}
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-light tracking-wide text-stone-800">モンレピ</h1>
+          <h1 className="text-4xl font-light tracking-wide text-stone-800">Monrepe</h1>
           <p className="text-stone-500">あなただけの、とっておきレシピ帳</p>
         </div>
 

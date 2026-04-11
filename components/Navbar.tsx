@@ -29,7 +29,7 @@ export default function Navbar() {
       <header className="border-b border-stone-100 bg-white/80 backdrop-blur-sm sticky top-0 z-10 hidden md:block">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="text-stone-800 font-medium tracking-wide text-lg">
-            モンレピ
+            Monrepe
           </Link>
           <nav className="flex items-center gap-1">
             {navItems.map((item) => (
@@ -59,7 +59,7 @@ export default function Navbar() {
       <header className="border-b border-stone-100 bg-white/80 backdrop-blur-sm sticky top-0 z-10 md:hidden">
         <div className="px-4 h-12 flex items-center justify-between">
           <Link href="/" className="text-stone-800 font-medium tracking-wide">
-            モンレピ
+            Monrepe
           </Link>
           <button
             onClick={() => setShowLogoutConfirm(true)}
