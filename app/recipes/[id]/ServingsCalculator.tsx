@@ -62,22 +62,16 @@ export default function ServingsCalculator({
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-medium text-stone-600">材料</h2>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-stone-400">人数：</span>
-          <div className="flex items-center gap-1">
+          <span className="text-xs text-stone-400">人数</span>
+          <select
+            value={selected}
+            onChange={(e) => setSelected(Number(e.target.value))}
+            className="px-3 py-1.5 bg-stone-100 border-none rounded-full text-sm font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-300"
+          >
             {[1,2,3,4,5,6,7,8].map(n => (
-              <button
-                key={n}
-                onClick={() => setSelected(n)}
-                className={`w-7 h-7 rounded-full text-xs font-medium transition-colors ${
-                  selected === n
-                    ? 'bg-stone-800 text-white'
-                    : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
-                }`}
-              >
-                {n}
-              </button>
+              <option key={n} value={n}>{n}人分</option>
             ))}
-          </div>
+          </select>
         </div>
       </div>
 
