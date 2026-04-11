@@ -91,15 +91,16 @@ export default function CookedButton({
       <div className="space-y-2">
         {/* 調理記録エリア */}
         <div className="flex items-center justify-between bg-stone-50 rounded-2xl px-4 py-3">
-          <div>
+          <button
+            onClick={() => localLogs.length > 0 && setShowHistory(true)}
+            className={localLogs.length > 0 ? 'text-left hover:opacity-70 transition-opacity active:opacity-50' : 'text-left'}
+          >
             <p className="text-xs text-stone-400">最終調理日</p>
             <p className="text-sm font-medium text-stone-700 mt-0.5">{lastCookedLabel}</p>
             {localLogs.length > 0 && (
-              <button onClick={() => setShowHistory(true)} className="text-xs text-stone-400 hover:text-stone-600 mt-0.5">
-                🍳 {localLogs.length}回調理済み
-              </button>
+              <p className="text-xs text-stone-400 mt-0.5">🍳 {localLogs.length}回調理済み</p>
             )}
-          </div>
+          </button>
           <button
             onClick={() => setShowConfirm(true)}
             disabled={loading || done}
