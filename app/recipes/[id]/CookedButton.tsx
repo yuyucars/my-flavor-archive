@@ -22,6 +22,7 @@ export default function CookedButton({
   const [showEditDate, setShowEditDate] = useState(false)
   const [localLogs, setLocalLogs] = useState<Log[]>(logs)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const toLocalDate = (iso: string) => {
     const d = new Date(iso)
@@ -55,6 +56,7 @@ export default function CookedButton({
   }
 
   const handleDeleteLog = async (logId: string) => {
+    setConfirmDeleteId(null)
     setDeletingId(logId)
     await supabase.from('cooking_logs').delete().eq('id', logId)
 
@@ -200,7 +202,7 @@ export default function CookedButton({
                         {new Date(log.created_at).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
                       </div>
                       <button
-                        onClick={() => handleDeleteLog(log.id)}
+                        onClick={() => setConfirmDeleteId(log.id)}
                         disabled={deletingId === log.id}
                         className="p-1.5 text-stone-300 hover:text-red-400 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40"
                       >
@@ -219,6 +221,33 @@ export default function CookedButton({
             <button onClick={() => setShowHistory(false)} className="w-full py-2.5 border border-stone-200 rounded-full text-stone-600 text-sm hover:bg-stone-50 transition-colors">
               閉じる
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 調理日削除確認モーダル */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 px-4 pb-4 sm:pb-0">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+            <p className="text-lg font-medium text-stone-800 mb-1">調理日を削除しますか？</p>
+            <p className="text-sm text-stone-400 mb-2">
+              {new Date(localLogs.find(l => l.id === confirmDeleteId)?.created_at ?? '').toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+            </p>
+            <p className="text-xs text-stone-400 mb-6">この操作は取り消せません。</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                className="flex-1 py-2.5 border border-stone-200 rounded-full text-stone-600 text-sm hover:bg-stone-50 transition-colors"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={() => handleDeleteLog(confirmDeleteId)}
+                className="flex-1 py-2.5 bg-red-500 text-white rounded-full text-sm font-medium hover:bg-red-600 transition-colors"
+              >
+                削除する
+              </button>
+            </div>
           </div>
         </div>
       )}
