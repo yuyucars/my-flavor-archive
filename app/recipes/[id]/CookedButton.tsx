@@ -19,10 +19,19 @@ export default function CookedButton({
   const [done, setDone] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
-  const [showEditDate, setShowEditDate] = useState(false)
   const [localLogs, setLocalLogs] = useState<Log[]>(logs)
+
+  // 削除
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+
+  // 編集
+  const [editingLog, setEditingLog] = useState<Log | null>(null)
+  const [editDate, setEditDate] = useState('')
+  const [editHour, setEditHour] = useState(0)
+
+  const supabase = createClient()
+  const router = useRouter()
 
   const toLocalDate = (iso: string) => {
     const d = new Date(iso)
@@ -30,15 +39,11 @@ export default function CookedButton({
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
   }
 
-  const [editDate, setEditDate] = useState(
-    lastCookedAt ? toLocalDate(lastCookedAt) : toLocalDate(new Date().toISOString())
-  )
-  const [editHour, setEditHour] = useState(
-    lastCookedAt ? new Date(lastCookedAt).getHours() : new Date().getHours()
-  )
-
-  const supabase = createClient()
-  const router = useRouter()
+  const syncLastCooked = async (newLogs: Log[]) => {
+    const sorted = [...newLogs].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    const newLastCooked = sorted.length > 0 ? sorted[0].created_at : null
+    await supabase.from('recipes').update({ last_cooked_at: newLastCooked }).eq('id', recipeId)
+  }
 
   const handleCooked = async () => {
     setShowConfirm(false)
@@ -59,32 +64,39 @@ export default function CookedButton({
     setConfirmDeleteId(null)
     setDeletingId(logId)
     await supabase.from('cooking_logs').delete().eq('id', logId)
-
     const newLogs = localLogs.filter(l => l.id !== logId)
     setLocalLogs(newLogs)
-
-    // 削除後に last_cooked_at を更新（残ったログの最新日 or null）
-    const newLastCooked = newLogs.length > 0
-      ? newLogs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0].created_at
-      : null
-    await supabase.from('recipes').update({ last_cooked_at: newLastCooked }).eq('id', recipeId)
-
+    await syncLastCooked(newLogs)
     setDeletingId(null)
     router.refresh()
   }
 
-  const handleEditDate = async () => {
+  const openEditLog = (log: Log) => {
+    setEditingLog(log)
+    setEditDate(toLocalDate(log.created_at))
+    setEditHour(new Date(log.created_at).getHours())
+  }
+
+  const handleEditLog = async () => {
+    if (!editingLog) return
     setLoading(true)
     const dt = new Date(`${editDate}T${String(editHour).padStart(2, '0')}:00:00`)
-    await supabase.from('recipes').update({ last_cooked_at: dt.toISOString() }).eq('id', recipeId)
-    setShowEditDate(false)
+    await supabase.from('cooking_logs').update({ created_at: dt.toISOString() }).eq('id', editingLog.id)
+    const newLogs = localLogs.map(l => l.id === editingLog.id ? { ...l, created_at: dt.toISOString() } : l)
+    setLocalLogs(newLogs)
+    await syncLastCooked(newLogs)
+    setEditingLog(null)
     setLoading(false)
     router.refresh()
   }
 
-  const lastCookedLabel = lastCookedAt
-    ? new Date(lastCookedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: 'short', day: 'numeric' })
-    : '未調理'
+  const lastCookedLabel = (() => {
+    const sorted = [...localLogs].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    const latest = sorted[0]?.created_at ?? lastCookedAt
+    return latest
+      ? new Date(latest).toLocaleDateString('ja-JP', { year: 'numeric', month: 'short', day: 'numeric' })
+      : '未調理'
+  })()
 
   return (
     <>
@@ -111,14 +123,6 @@ export default function CookedButton({
             {done ? '✓ 記録!' : loading ? '...' : '✓ 今日作った'}
           </button>
         </div>
-
-        {/* 調理日修正ボタン（目立つ位置に独立） */}
-        <button
-          onClick={() => setShowEditDate(true)}
-          className="w-full py-2 border border-stone-200 rounded-xl text-xs text-stone-400 hover:text-stone-600 hover:border-stone-300 hover:bg-stone-50 transition-colors"
-        >
-          📅 最終調理日を修正する
-        </button>
       </div>
 
       {/* 今日作った確認モーダル */}
@@ -139,11 +143,65 @@ export default function CookedButton({
         </div>
       )}
 
-      {/* 日付修正モーダル */}
-      {showEditDate && (
+      {/* 調理履歴モーダル */}
+      {showHistory && (
         <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 px-4 pb-4 sm:pb-0">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
-            <p className="text-lg font-medium text-stone-800 mb-1">最終調理日を修正</p>
+            <p className="text-lg font-medium text-stone-800 mb-4">🍳 調理履歴</p>
+            {localLogs.length === 0 ? (
+              <p className="text-sm text-stone-400 text-center py-4 mb-4">調理記録がありません</p>
+            ) : (
+              <ul className="space-y-1 max-h-64 overflow-y-auto mb-4">
+                {[...localLogs]
+                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                  .map((log) => (
+                    <li key={log.id} className="flex items-center justify-between gap-2 py-2 px-1 rounded-lg hover:bg-stone-50">
+                      <div className="flex items-center gap-2 text-sm text-stone-600">
+                        <span className="w-2 h-2 rounded-full bg-green-300 flex-shrink-0" />
+                        {new Date(log.created_at).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {/* 編集ボタン */}
+                        <button
+                          onClick={() => { setShowHistory(false); openEditLog(log) }}
+                          className="p-1.5 text-stone-300 hover:text-stone-500 hover:bg-stone-100 rounded-lg transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                            <path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
+                            <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
+                          </svg>
+                        </button>
+                        {/* 削除ボタン */}
+                        <button
+                          onClick={() => setConfirmDeleteId(log.id)}
+                          disabled={deletingId === log.id}
+                          className="p-1.5 text-stone-300 hover:text-red-400 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40"
+                        >
+                          {deletingId === log.id ? (
+                            <span className="text-xs">...</span>
+                          ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                              <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+              </ul>
+            )}
+            <button onClick={() => setShowHistory(false)} className="w-full py-2.5 border border-stone-200 rounded-full text-stone-600 text-sm hover:bg-stone-50 transition-colors">
+              閉じる
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 調理日編集モーダル */}
+      {editingLog && (
+        <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 px-4 pb-4 sm:pb-0">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+            <p className="text-lg font-medium text-stone-800 mb-1">調理日を修正</p>
             <p className="text-sm text-stone-400 mb-4">実際に作った日時に変更できます</p>
             <div className="space-y-3 mb-4">
               <div>
@@ -171,57 +229,19 @@ export default function CookedButton({
             </div>
             <div className="flex flex-col gap-2">
               <button
-                onClick={handleEditDate}
+                onClick={handleEditLog}
                 disabled={loading}
                 className="w-full py-3 bg-stone-800 text-white rounded-full text-sm font-medium hover:bg-stone-700 disabled:opacity-50 transition-colors"
               >
                 {loading ? '保存中...' : '保存する'}
               </button>
-              <button onClick={() => setShowEditDate(false)} className="w-full py-3 border border-stone-200 rounded-full text-stone-600 text-sm hover:bg-stone-50 transition-colors">
+              <button
+                onClick={() => { setEditingLog(null); setShowHistory(true) }}
+                className="w-full py-3 border border-stone-200 rounded-full text-stone-600 text-sm hover:bg-stone-50 transition-colors"
+              >
                 キャンセル
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* 調理履歴モーダル */}
-      {showHistory && (
-        <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 px-4 pb-4 sm:pb-0">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
-            <p className="text-lg font-medium text-stone-800 mb-4">🍳 調理履歴</p>
-            {localLogs.length === 0 ? (
-              <p className="text-sm text-stone-400 text-center py-4 mb-4">調理記録がありません</p>
-            ) : (
-              <ul className="space-y-1 max-h-64 overflow-y-auto mb-4">
-                {localLogs
-                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                  .map((log) => (
-                    <li key={log.id} className="flex items-center justify-between gap-2 py-2 px-1 rounded-lg hover:bg-stone-50">
-                      <div className="flex items-center gap-2 text-sm text-stone-600">
-                        <span className="w-2 h-2 rounded-full bg-green-300 flex-shrink-0" />
-                        {new Date(log.created_at).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
-                      </div>
-                      <button
-                        onClick={() => setConfirmDeleteId(log.id)}
-                        disabled={deletingId === log.id}
-                        className="p-1.5 text-stone-300 hover:text-red-400 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40"
-                      >
-                        {deletingId === log.id ? (
-                          <span className="text-xs">...</span>
-                        ) : (
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                            <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </button>
-                    </li>
-                  ))}
-              </ul>
-            )}
-            <button onClick={() => setShowHistory(false)} className="w-full py-2.5 border border-stone-200 rounded-full text-stone-600 text-sm hover:bg-stone-50 transition-colors">
-              閉じる
-            </button>
           </div>
         </div>
       )}
