@@ -27,6 +27,7 @@ let cachedRecipes: Recipe[] | null = null
 export default function RecipeList() {
   const [recipes, setRecipes] = useState<Recipe[] | null>(cachedRecipes)
   const [loading, setLoading] = useState(cachedRecipes === null)
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc')
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [processing, setProcessing] = useState(false)
@@ -140,6 +141,11 @@ export default function RecipeList() {
   const allFavoritedInSelection = selected.size > 0 &&
     Array.from(selected).every(id => recipes.find(r => r.id === id)?.is_favorite)
 
+  const sortedRecipes = [...recipes].sort((a, b) => {
+    const diff = new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    return sortOrder === 'desc' ? diff : -diff
+  })
+
   return (
     <>
       {/* 選択モード切替ヘッダー */}
@@ -166,24 +172,41 @@ export default function RecipeList() {
             </button>
           </>
         ) : (
-          <button
-            onClick={() => setSelectMode(true)}
-            className="ml-auto flex items-center gap-1.5 px-4 py-2 border border-stone-200 hover:bg-stone-50 rounded-full text-sm font-medium text-stone-500 transition-colors active:scale-95"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-4 h-4">
-              <rect x="3" y="3" width="6" height="6" rx="1" />
-              <rect x="11" y="3" width="6" height="6" rx="1" />
-              <rect x="3" y="11" width="6" height="6" rx="1" />
-              <rect x="11" y="11" width="6" height="6" rx="1" />
-            </svg>
-            選択
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            {/* 並び替え */}
+            <button
+              onClick={() => setSortOrder(o => o === 'desc' ? 'asc' : 'desc')}
+              className="flex items-center gap-1.5 px-4 py-2 border border-stone-200 hover:bg-stone-50 rounded-full text-sm font-medium text-stone-500 transition-colors active:scale-95"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                {sortOrder === 'desc' ? (
+                  <path fillRule="evenodd" d="M2 3.75A.75.75 0 012.75 3h11.5a.75.75 0 010 1.5H2.75A.75.75 0 012 3.75zm0 4.167a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zm0 4.166a.75.75 0 01.75-.75h3.5a.75.75 0 010 1.5h-3.5a.75.75 0 01-.75-.75zm13.25-8.083a.75.75 0 01.75.75v8.59l1.72-1.72a.75.75 0 111.06 1.06l-3 3a.75.75 0 01-1.06 0l-3-3a.75.75 0 111.06-1.06l1.72 1.72V4.75a.75.75 0 01.75-.75z" clipRule="evenodd" />
+                ) : (
+                  <path fillRule="evenodd" d="M2 3.75A.75.75 0 012.75 3h11.5a.75.75 0 010 1.5H2.75A.75.75 0 012 3.75zm0 4.167a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zm0 4.166a.75.75 0 01.75-.75h3.5a.75.75 0 010 1.5h-3.5a.75.75 0 01-.75-.75zm13.25-8.083a.75.75 0 01.75.75v8.59l1.72-1.72a.75.75 0 111.06 1.06l-3 3a.75.75 0 01-1.06 0l-3-3a.75.75 0 111.06-1.06l1.72 1.72V4.75a.75.75 0 01.75-.75z" clipRule="evenodd" transform="scale(1,-1) translate(0,-20)" />
+                )}
+              </svg>
+              {sortOrder === 'desc' ? '新しい順' : '古い順'}
+            </button>
+            {/* 選択 */}
+            <button
+              onClick={() => setSelectMode(true)}
+              className="flex items-center gap-1.5 px-4 py-2 border border-stone-200 hover:bg-stone-50 rounded-full text-sm font-medium text-stone-500 transition-colors active:scale-95"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-4 h-4">
+                <rect x="3" y="3" width="6" height="6" rx="1" />
+                <rect x="11" y="3" width="6" height="6" rx="1" />
+                <rect x="3" y="11" width="6" height="6" rx="1" />
+                <rect x="11" y="11" width="6" height="6" rx="1" />
+              </svg>
+              選択
+            </button>
+          </div>
         )}
       </div>
 
       {/* レシピグリッド */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        {recipes.map((recipe) => {
+        {sortedRecipes.map((recipe) => {
           const isSelected = selected.has(recipe.id)
           return selectMode ? (
             <button
