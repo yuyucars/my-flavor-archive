@@ -419,9 +419,14 @@ export default function RecipeList({ favoritesOnly = false }: { favoritesOnly?: 
                   </svg>
                 )}
               </div>
-              {recipe.image_url && (
+              {recipe.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={recipe.image_url} alt={recipe.title} className="w-full h-36 object-cover" />
+              ) : (
+                <div className="w-full h-36 bg-stone-100 flex flex-col items-center justify-center gap-1">
+                  <span className="text-3xl opacity-40">🍽️</span>
+                  <span className="text-xs text-stone-300">No Image</span>
+                </div>
               )}
               <div className="p-3 sm:p-5">
                 <h2 className="font-medium text-stone-800 line-clamp-2 mb-2 text-sm sm:text-base">
@@ -443,9 +448,14 @@ export default function RecipeList({ favoritesOnly = false }: { favoritesOnly?: 
               href={`/recipes/${recipe.id}`}
               className="group bg-white rounded-2xl border border-stone-100 overflow-hidden hover:shadow-md hover:border-stone-200 transition-all active:scale-95 active:opacity-70"
             >
-              {recipe.image_url && (
+              {recipe.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={recipe.image_url} alt={recipe.title} className="w-full h-36 object-cover" />
+              ) : (
+                <div className="w-full h-36 bg-stone-100 flex flex-col items-center justify-center gap-1">
+                  <span className="text-3xl opacity-40">🍽️</span>
+                  <span className="text-xs text-stone-300">No Image</span>
+                </div>
               )}
               <div className="p-3 sm:p-5">
                 <h2 className="font-medium text-stone-800 group-hover:text-stone-600 transition-colors line-clamp-2 mb-2 text-sm sm:text-base">
