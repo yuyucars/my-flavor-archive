@@ -26,10 +26,32 @@ export default function MealPlanPage() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const inputAreaRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // キーボード表示時に入力欄がキーボードの上に来るよう調整（iOS対応）
+  useEffect(() => {
+    const viewport = window.visualViewport
+    if (!viewport) return
+
+    const handleViewportChange = () => {
+      const el = inputAreaRef.current
+      if (!el) return
+      const offsetFromBottom = window.innerHeight - viewport.height - viewport.offsetTop
+      el.style.bottom = `${Math.max(offsetFromBottom, 64)}px`
+    }
+
+    viewport.addEventListener('resize', handleViewportChange)
+    viewport.addEventListener('scroll', handleViewportChange)
+
+    return () => {
+      viewport.removeEventListener('resize', handleViewportChange)
+      viewport.removeEventListener('scroll', handleViewportChange)
+    }
+  }, [])
 
   const sendMessage = async (text?: string) => {
     const userMessage = text ?? input.trim()
@@ -112,7 +134,7 @@ export default function MealPlanPage() {
         )}
 
         {/* 入力欄（固定） */}
-        <div className="fixed bottom-16 left-0 right-0 md:relative md:bottom-auto bg-white/90 backdrop-blur-sm border-t border-stone-100 md:border-0 px-4 py-3 md:p-0">
+        <div ref={inputAreaRef} className="fixed bottom-16 left-0 right-0 md:relative md:bottom-auto bg-white/90 backdrop-blur-sm border-t border-stone-100 md:border-0 px-4 py-3 md:p-0">
           <div className="max-w-2xl mx-auto flex gap-2">
             <input
               type="text"
