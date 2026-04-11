@@ -4,9 +4,11 @@ import { NextResponse } from 'next/server'
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
+type ConversationMessage = { role: 'user' | 'ai'; content: string }
+
 export async function POST(request: Request) {
   try {
-    const { message } = await request.json()
+    const { message, history = [] }: { message: string; history: ConversationMessage[] } = await request.json()
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -29,6 +31,16 @@ export async function POST(request: Request) {
         }).join('\n')
       : 'レシピが登録されていません'
 
+    // 登録意図の検出
+    const isRegisterIntent = /登録して|追加して|保存して|登録したい|追加したい/.test(message)
+
+    // 会話履歴をGroq形式に変換
+    const conversationHistory = history.map(m => ({
+      role: m.role === 'user' ? 'user' as const : 'assistant' as const,
+      content: m.content,
+    }))
+
+    // 通常の返答を生成
     const completion = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [
@@ -45,18 +57,49 @@ ${recipeList}
 - 登録済みレシピを提案する場合は「📌 登録済み」とわかるよう示す
 - 登録外のレシピを提案する場合は、以下の形式でクックパッドの検索リンクを必ず添える：
   🔗 レシピを見る: https://cookpad.com/search/料理名（料理名はURLエンコードせずそのまま記載）
+- ユーザーが「登録して」と言った場合は、直前に提案した料理名を確認して「〇〇をMonrepeに登録します！」と返答する
 - 簡潔にわかりやすく提案する
 - 絵文字を適度に使って親しみやすくする`,
         },
-        {
-          role: 'user',
-          content: message,
-        },
+        ...conversationHistory,
+        { role: 'user', content: message },
       ],
       temperature: 0.8,
     })
 
     const suggestion = completion.choices[0]?.message?.content || ''
+
+    // 登録意図がある場合、レシピデータを生成
+    if (isRegisterIntent) {
+      const recentContext = [...conversationHistory, { role: 'assistant' as const, content: suggestion }]
+        .slice(-6)
+        .map(m => `${m.role === 'user' ? 'ユーザー' : 'AI'}: ${m.content}`)
+        .join('\n')
+
+      const recipeCompletion = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          {
+            role: 'system',
+            content: `以下の会話からユーザーが登録しようとしている料理を特定し、JSONで返してください。
+フィールド: title(string), genre(string: 和食/洋食/中華/イタリアン/アジア料理/その他), servings(number), cooking_time(number: 分), ingredients(array of {name:string, amount:string}), steps(array of {order:number, description:string})
+ingredientsとstepsは一般的なレシピをもとに5〜8件程度で生成してください。
+JSONのみを返し、それ以外のテキストは含めないでください。`,
+          },
+          { role: 'user', content: recentContext },
+        ],
+        temperature: 0.3,
+        response_format: { type: 'json_object' },
+      })
+
+      try {
+        const recipeData = JSON.parse(recipeCompletion.choices[0]?.message?.content || '{}')
+        return NextResponse.json({ suggestion, registerRecipe: recipeData })
+      } catch {
+        return NextResponse.json({ suggestion })
+      }
+    }
+
     return NextResponse.json({ suggestion })
   } catch (e: unknown) {
     console.error('[meal-plan error]', e)
