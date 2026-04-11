@@ -143,28 +143,39 @@ export default function RecipeList() {
   return (
     <>
       {/* 選択モード切替ヘッダー */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-4">
         {selectMode ? (
           <>
             <button
-              onClick={toggleSelectAll}
-              className="text-sm text-stone-500 hover:text-stone-700"
-            >
-              {selected.size === recipes.length ? 'すべて解除' : 'すべて選択'}
-            </button>
-            <span className="text-sm text-stone-400">{selected.size}件選択中</span>
-            <button
               onClick={exitSelectMode}
-              className="text-sm text-stone-500 hover:text-stone-700"
+              className="flex items-center gap-1.5 px-4 py-2 bg-stone-100 hover:bg-stone-200 rounded-full text-sm font-medium text-stone-600 transition-colors active:scale-95"
             >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+              </svg>
               キャンセル
+            </button>
+            <span className="text-sm font-medium text-stone-500">
+              {selected.size > 0 ? `${selected.size}件選択中` : '選択してください'}
+            </span>
+            <button
+              onClick={toggleSelectAll}
+              className="px-4 py-2 bg-stone-100 hover:bg-stone-200 rounded-full text-sm font-medium text-stone-600 transition-colors active:scale-95"
+            >
+              {selected.size === recipes.length ? '解除' : '全選択'}
             </button>
           </>
         ) : (
           <button
             onClick={() => setSelectMode(true)}
-            className="ml-auto text-sm text-stone-400 hover:text-stone-600 transition-colors"
+            className="ml-auto flex items-center gap-1.5 px-4 py-2 border border-stone-200 hover:bg-stone-50 rounded-full text-sm font-medium text-stone-500 transition-colors active:scale-95"
           >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-4 h-4">
+              <rect x="3" y="3" width="6" height="6" rx="1" />
+              <rect x="11" y="3" width="6" height="6" rx="1" />
+              <rect x="3" y="11" width="6" height="6" rx="1" />
+              <rect x="11" y="11" width="6" height="6" rx="1" />
+            </svg>
             選択
           </button>
         )}
