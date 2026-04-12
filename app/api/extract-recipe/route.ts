@@ -4,15 +4,46 @@ import { NextResponse } from 'next/server'
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
 function extractImageUrl(html: string, baseUrl: string): string | null {
-  // og:image を優先
+  // 1. og:image を優先
   const ogImage = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
     ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
   if (ogImage?.[1]) return toAbsoluteUrl(ogImage[1], baseUrl)
 
-  // twitter:image
+  // 2. twitter:image
   const twitterImage = html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
     ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i)
   if (twitterImage?.[1]) return toAbsoluteUrl(twitterImage[1], baseUrl)
+
+  // 3. JSON-LD の Recipe スキーマから画像を取得
+  const jsonLdMatches = html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)
+  for (const match of jsonLdMatches) {
+    try {
+      const data = JSON.parse(match[1])
+      const entries = Array.isArray(data) ? data : [data]
+      for (const entry of entries) {
+        const image = entry?.image ?? entry?.['@graph']?.find?.((g: {image?: string}) => g.image)?.image
+        if (image) {
+          const imgUrl = Array.isArray(image) ? image[0] : (typeof image === 'object' ? image.url : image)
+          if (imgUrl) return toAbsoluteUrl(imgUrl, baseUrl)
+        }
+      }
+    } catch { /* ignore */ }
+  }
+
+  // 4. ページ内の <img> タグからメインのレシピ画像を探す
+  // ロゴ・アイコン・バナー等を除いた最初の大きい画像を取得
+  const skipPattern = /logo|icon|banner|sprite|avatar|ad[_-]|header|footer|btn|button|arrow|star|rating/i
+  const imgTags = html.matchAll(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi)
+  for (const match of imgTags) {
+    const src = match[1]
+    // データURIやSVGをスキップ
+    if (src.startsWith('data:') || src.endsWith('.svg') || src.endsWith('.gif')) continue
+    // ロゴ・アイコン系をスキップ
+    if (skipPattern.test(src) || skipPattern.test(match[0])) continue
+    // jpg/jpeg/png/webp のみ対象
+    if (!/\.(jpg|jpeg|png|webp)/i.test(src)) continue
+    return toAbsoluteUrl(src, baseUrl)
+  }
 
   return null
 }
