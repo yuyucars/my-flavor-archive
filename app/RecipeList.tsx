@@ -149,9 +149,11 @@ export default function RecipeList({ favoritesOnly = false }: { favoritesOnly?: 
 
   const fetchRecipes = useCallback(async (showLoading = false) => {
     if (showLoading) setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
     const { data } = await supabase
       .from('recipes')
       .select('*')
+      .eq('user_id', user?.id)
       .order('created_at', { ascending: false })
     if (data) {
       cachedRecipes = data as Recipe[]
