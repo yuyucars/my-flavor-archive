@@ -7,6 +7,7 @@ import DeleteButton from './DeleteButton'
 import EditButton from './EditButton'
 import FavoriteButton from './FavoriteButton'
 import ServingsCalculator from './ServingsCalculator'
+import ShareButton from './ShareButton'
 
 type Recipe = {
   id: string
@@ -18,6 +19,7 @@ type Recipe = {
   servings: number | null
   genre: string | null
   is_favorite: boolean
+  is_public: boolean
   ingredients: { name: string; amount: string }[] | null
   steps: { order: number; description: string }[] | null
   created_at: string
@@ -74,6 +76,7 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
                 <FavoriteButton recipeId={r.id} initialFavorite={r.is_favorite ?? false} />
                 <EditButton recipeId={r.id} />
                 <DeleteButton recipeId={r.id} />
+                <ShareButton recipeId={r.id} isPublic={r.is_public ?? false} />
               </div>
             </div>
 
