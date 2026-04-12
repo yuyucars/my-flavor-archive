@@ -17,9 +17,20 @@ export default function ShareButton({ recipeId, isPublic }: { recipeId: string; 
         setShared(true)
       }
       const url = `${window.location.origin}/share/${recipeId}`
-      await navigator.clipboard.writeText(url)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+
+      // ネイティブ共有シート（LINE・メッセージ等の候補が出る）
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Monrepeでレシピを共有',
+          text: 'レシピを見てみて！Monrepeに登録できるよ🍳',
+          url,
+        })
+      } else {
+        // 非対応ブラウザはクリップボードにコピー
+        await navigator.clipboard.writeText(url)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }
     } finally {
       setLoading(false)
     }
