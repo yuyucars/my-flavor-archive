@@ -24,11 +24,31 @@ export default function NewRecipePage() {
   const [loading, setLoading] = useState(false)
   const [extracting, setExtracting] = useState(false)
   const [error, setError] = useState('')
+  const [duplicateRecipe, setDuplicateRecipe] = useState<{ id: string; title: string } | null>(null)
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false)
 
   const handleExtract = async () => {
     if (!sourceUrl.trim()) return
     setExtracting(true)
     setError('')
+
+    // 重複チェック
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data: existing } = await supabase
+        .from('recipes')
+        .select('id, title')
+        .eq('user_id', user.id)
+        .eq('source_url', sourceUrl.trim())
+        .single()
+      if (existing) {
+        setDuplicateRecipe(existing)
+        setShowDuplicateModal(true)
+        setExtracting(false)
+        return
+      }
+    }
+
     try {
       const res = await fetch('/api/extract-recipe', {
         method: 'POST',
@@ -128,6 +148,62 @@ export default function NewRecipePage() {
         {error && (
           <div className="bg-red-50 border border-red-100 rounded-xl p-3 mb-6 text-sm text-red-600">
             {error}
+          </div>
+        )}
+
+        {/* 重複確認モーダル */}
+        {showDuplicateModal && duplicateRecipe && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl space-y-4">
+              <div>
+                <p className="text-lg font-medium text-stone-800 mb-1">⚠️ 登録済みのサイトです</p>
+                <p className="text-sm text-stone-500">
+                  「<span className="font-medium text-stone-700">{duplicateRecipe.title}</span>」として過去に登録されています。このまま続けて登録しますか？
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDuplicateModal(false)
+                    setDuplicateRecipe(null)
+                  }}
+                  className="flex-1 py-2.5 border border-stone-200 rounded-full text-stone-600 text-sm hover:bg-stone-50 transition-colors"
+                >
+                  キャンセル
+                </button>
+                <button
+                  onClick={async () => {
+                    setShowDuplicateModal(false)
+                    setDuplicateRecipe(null)
+                    setExtracting(true)
+                    setError('')
+                    try {
+                      const res = await fetch('/api/extract-recipe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url: sourceUrl }),
+                      })
+                      const data = await res.json()
+                      if (!res.ok) throw new Error(data.error || '抽出に失敗しました')
+                      if (data.title) setTitle(data.title)
+                      if (data.cooking_time) setCookingTime(String(data.cooking_time))
+                      if (data.servings) setServings(String(data.servings))
+                      if (data.genre) setGenre(data.genre as string)
+                      if (data.ingredients?.length) setIngredients(data.ingredients)
+                      if (data.steps?.length) setSteps(data.steps)
+                      if (data.image_url) setImageUrl(data.image_url)
+                    } catch (e: unknown) {
+                      setError(e instanceof Error ? e.message : '抽出に失敗しました')
+                    } finally {
+                      setExtracting(false)
+                    }
+                  }}
+                  className="flex-1 py-2.5 bg-stone-800 text-white rounded-full text-sm font-medium hover:bg-stone-700 transition-colors"
+                >
+                  登録する
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
