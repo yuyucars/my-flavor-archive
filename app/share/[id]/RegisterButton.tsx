@@ -25,12 +25,29 @@ export default function RegisterButton({ recipe }: { recipe: Recipe }) {
   const router = useRouter()
   const supabase = createClient()
 
+  const [duplicateRecipe, setDuplicateRecipe] = useState<{ id: string; title: string } | null>(null)
+
   const handleClick = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       router.push(`/login?next=/share/${recipe.id}`)
       return
     }
+
+    // 重複チェック（source_url が一致するものを確認）
+    if (recipe.source_url) {
+      const { data: existing } = await supabase
+        .from('recipes')
+        .select('id, title')
+        .eq('user_id', user.id)
+        .eq('source_url', recipe.source_url)
+        .single()
+      if (existing) {
+        setDuplicateRecipe(existing)
+        return
+      }
+    }
+
     setShowConfirm(true)
   }
 
@@ -82,6 +99,37 @@ export default function RegisterButton({ recipe }: { recipe: Recipe }) {
       >
         ✨ Monrepeに登録する
       </button>
+
+      {/* 登録済みモーダル */}
+      {duplicateRecipe && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl space-y-4">
+            <div>
+              <p className="text-lg font-medium text-stone-800 mb-1">⚠️ すでに登録済みです</p>
+              <p className="text-sm text-stone-500">
+                「<span className="font-medium text-stone-700">{duplicateRecipe.title}</span>」として登録されています。それでも追加しますか？
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDuplicateRecipe(null)}
+                className="flex-1 py-2.5 border border-stone-200 rounded-full text-stone-600 text-sm hover:bg-stone-50 transition-colors"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={() => {
+                  setDuplicateRecipe(null)
+                  setShowConfirm(true)
+                }}
+                className="flex-1 py-2.5 bg-stone-800 text-white rounded-full text-sm font-medium hover:bg-stone-700 transition-colors"
+              >
+                追加する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 確認モーダル */}
       {showConfirm && (
