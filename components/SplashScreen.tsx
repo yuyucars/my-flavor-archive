@@ -7,22 +7,33 @@ export default function SplashScreen() {
   const [fadeOut, setFadeOut] = useState(false)
 
   useEffect(() => {
-    // セッション内で一度だけ表示
     const hasShown = sessionStorage.getItem('monrepe-splash-shown')
     if (hasShown) {
       setVisible(false)
       return
     }
 
-    const fadeTimer = setTimeout(() => setFadeOut(true), 1400)
-    const hideTimer = setTimeout(() => {
-      setVisible(false)
-      sessionStorage.setItem('monrepe-splash-shown', '1')
-    }, 1800)
+    const minDisplay = 800 // 最低表示時間（ms）
+    const startTime = Date.now()
 
-    return () => {
-      clearTimeout(fadeTimer)
-      clearTimeout(hideTimer)
+    const hide = () => {
+      const elapsed = Date.now() - startTime
+      const remaining = Math.max(0, minDisplay - elapsed)
+      setTimeout(() => {
+        setFadeOut(true)
+        setTimeout(() => {
+          setVisible(false)
+          sessionStorage.setItem('monrepe-splash-shown', '1')
+        }, 400)
+      }, remaining)
+    }
+
+    // ページが完全に読み込まれたら非表示にする
+    if (document.readyState === 'complete') {
+      hide()
+    } else {
+      window.addEventListener('load', hide, { once: true })
+      return () => window.removeEventListener('load', hide)
     }
   }, [])
 
@@ -30,7 +41,7 @@ export default function SplashScreen() {
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-6 transition-opacity duration-400"
+      className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-6"
       style={{
         backgroundColor: '#fdfbf8',
         opacity: fadeOut ? 0 : 1,
