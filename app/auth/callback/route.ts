@@ -10,11 +10,15 @@ export async function GET(request: Request) {
 
   const supabase = await createClient()
 
+  const next = searchParams.get('next') || '/'
+  // next が外部 URL へのオープンリダイレクトにならないよう、/始まりのパスのみ許可
+  const redirectPath = next.startsWith('/') ? next : '/'
+
   // Google OAuth（codeフロー）
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      return NextResponse.redirect(`${origin}/`)
+      return NextResponse.redirect(`${origin}${redirectPath}`)
     }
   }
 
@@ -22,7 +26,7 @@ export async function GET(request: Request) {
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({ token_hash, type })
     if (!error) {
-      return NextResponse.redirect(`${origin}/`)
+      return NextResponse.redirect(`${origin}${redirectPath}`)
     }
   }
 
