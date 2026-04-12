@@ -1,21 +1,24 @@
 export default function Loading() {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div className="h-7 w-28 bg-stone-100 rounded-lg animate-pulse" />
-        <div className="h-10 w-32 bg-stone-100 rounded-full animate-pulse" />
+    <div
+      className="fixed inset-0 flex flex-col items-center justify-center gap-6"
+      style={{ backgroundColor: '#fdfbf8' }}
+    >
+      <div className="space-y-3 text-center">
+        <h1 className="text-4xl font-light tracking-wide text-stone-800">Monrepe</h1>
+        <p className="text-stone-400 text-sm">ようこそ、Monrepeへ</p>
       </div>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-stone-100 overflow-hidden">
-            <div className="h-36 bg-stone-100 animate-pulse" />
-            <div className="p-3 space-y-2">
-              <div className="h-4 bg-stone-100 rounded animate-pulse" />
-              <div className="h-3 w-2/3 bg-stone-100 rounded animate-pulse" />
-            </div>
-          </div>
-        ))}
+
+      <div className="w-16 h-px bg-stone-200" />
+
+      {/* ドットアニメーション */}
+      <div className="flex gap-2">
+        <span className="w-2 h-2 bg-stone-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+        <span className="w-2 h-2 bg-stone-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+        <span className="w-2 h-2 bg-stone-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
       </div>
+
+      <p className="text-xs text-stone-300">準備中...</p>
     </div>
   )
 }
