@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import RegisterButton from './RegisterButton'
+import AppBanner from './AppBanner'
 
 type Recipe = {
   id: string
@@ -36,6 +37,8 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
   if (!recipe) notFound()
   const r = recipe as Recipe
 
+  const shareUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://my-flavor-archive.vercel.app'}/share/${id}`
+
   return (
     <main className="min-h-screen" style={{ backgroundColor: '#fdfbf8' }}>
       <div className="max-w-2xl mx-auto px-4 py-8 pb-16">
@@ -45,6 +48,9 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
           <h1 className="text-2xl font-light tracking-wide text-stone-800">Monrepe</h1>
           <p className="text-stone-400 text-xs mt-1">レシピが共有されました</p>
         </div>
+
+        {/* アプリバナー（ブラウザで開いた場合のみ表示） */}
+        <AppBanner shareUrl={shareUrl} />
 
         <div className="bg-white rounded-2xl border border-stone-100 overflow-hidden mb-6">
           {r.image_url ? (
